@@ -1,0 +1,6 @@
+@TasinmazYönetimi.Application_HostAddress = http://localhost:5239
+
+GET {{TasinmazYönetimi.Application_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

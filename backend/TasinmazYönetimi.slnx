@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/TasinmazYönetimi.Api/TasinmazYönetimi.Api.csproj" />
+    <Project Path="src/TasinmazYönetimi.Application/TasinmazYönetimi.Application.csproj" />
+    <Project Path="src/TasinmazYönetimi.Domain/TasinmazYönetimi.Domain.csproj" />
+    <Project Path="src/TasinmazYönetimi.Infrastructure/TasinmazYönetimi.Infrastructure.csproj" />
+  </Folder>
+</Solution>
