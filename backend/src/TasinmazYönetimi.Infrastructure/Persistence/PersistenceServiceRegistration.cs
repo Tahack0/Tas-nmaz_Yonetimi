@@ -12,7 +12,7 @@ public static class PersistenceServiceRegistration
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException(
-                "DefaultConnection bağlantı dizesi tanımlı değil.");
+                "DefaultConnection bağlanti dizesi tanimli değil.");
 
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseNpgsql(connectionString, npgsql =>
