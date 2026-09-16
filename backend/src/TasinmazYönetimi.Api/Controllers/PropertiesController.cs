@@ -28,25 +28,37 @@ public class PropertiesController : ControllerBase
 
         try
         {
-            PropertyResponse result = await _properties.CreateAsync(
-                userId, request, cancellationToken);
+            PropertyResponse result =
+                await _properties.CreateAsync(
+                    userId,
+                    request,
+                    cancellationToken);
 
             return CreatedAtAction(
-                nameof(GetById), new { id = result.Id }, result);
+                nameof(GetById),
+                new { id = result.Id },
+                result);
         }
-        catch (ArgumentException ex)
+        catch (ArgumentException exception)
         {
-            return BadRequest(new { message = ex.Message });
+            return BadRequest(new
+            {
+                message = exception.Message
+            });
         }
     }
 
     [HttpGet]
-    public async Task<IActionResult> List(CancellationToken cancellationToken)
+    public async Task<IActionResult> List(
+        CancellationToken cancellationToken)
     {
         if (!TryGetUserId(out Guid userId))
             return Unauthorized();
 
-        var result = await _properties.ListAsync(userId, cancellationToken);
+        var result = await _properties.ListAsync(
+            userId,
+            cancellationToken);
+
         return Ok(result);
     }
 
@@ -58,10 +70,64 @@ public class PropertiesController : ControllerBase
         if (!TryGetUserId(out Guid userId))
             return Unauthorized();
 
-        PropertyResponse? result = await _properties.GetByIdAsync(
-            userId, id, cancellationToken);
+        PropertyResponse? result =
+            await _properties.GetByIdAsync(
+                userId,
+                id,
+                cancellationToken);
 
-        return result is null ? NotFound() : Ok(result);
+        return result is null
+            ? NotFound()
+            : Ok(result);
+    }
+
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Update(
+        Guid id,
+        [FromBody] UpdatePropertyRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetUserId(out Guid userId))
+            return Unauthorized();
+
+        try
+        {
+            PropertyResponse? result =
+                await _properties.UpdateAsync(
+                    userId,
+                    id,
+                    request,
+                    cancellationToken);
+
+            return result is null
+                ? NotFound()
+                : Ok(result);
+        }
+        catch (ArgumentException exception)
+        {
+            return BadRequest(new
+            {
+                message = exception.Message
+            });
+        }
+    }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetUserId(out Guid userId))
+            return Unauthorized();
+
+        bool deleted = await _properties.DeleteAsync(
+            userId,
+            id,
+            cancellationToken);
+
+        return deleted
+            ? NoContent()
+            : NotFound();
     }
 
     private bool TryGetUserId(out Guid userId) =>

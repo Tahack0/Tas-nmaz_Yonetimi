@@ -15,4 +15,15 @@ public interface IPropertyService
         Guid userId,
         Guid id,
         CancellationToken cancellationToken);
+
+    Task<PropertyResponse?> UpdateAsync(
+        Guid userId,
+        Guid id,
+        UpdatePropertyRequest request,
+        CancellationToken cancellationToken);
+
+    Task<bool> DeleteAsync(
+        Guid userId,
+        Guid id,
+        CancellationToken cancellationToken);
 }
