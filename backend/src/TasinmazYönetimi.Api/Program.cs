@@ -7,23 +7,30 @@ using TasinmazYönetimi.Infrastructure.Security;
 using TasinmazYönetimi.Application.Properties;
 using TasinmazYönetimi.Infrastructure.Properties;
 using Microsoft.OpenApi.Models;
+using TasinmazYönetimi.Api.Services;
+using TasinmazYönetimi.Application.Auditing;
+using TasinmazYönetimi.Application.Common;
+using TasinmazYönetimi.Infrastructure.Auditing;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddPersistence(builder.Configuration);
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentRequestContext,HttpCurrentRequestContext>();
+builder.Services.AddScoped<IAuditLogService,AuditLogService>();
 builder.Services.AddScoped<IRegistrationService, RegistrationService>();
 builder.Services.AddScoped<ILoginService, LoginService>();
 builder.Services.AddScoped<IPropertyService,PropertyService>();
 
 
 string jwtKey = builder.Configuration["Jwt:Key"]
-    ?? throw new InvalidOperationException("Jwt:Key yapılandırılmamış.");
+    ?? throw new InvalidOperationException("Jwt:Key Yapilandirilmamis.");
 
 byte[] keyBytes = Convert.FromBase64String(jwtKey);
 
 if (keyBytes.Length < 32)
 {
-    throw new InvalidOperationException("Jwt:Key en az 32 bayt olmalı.");
+    throw new InvalidOperationException("Jwt:Key en az 32 bayt olmali.");
 }
 
 var signingKey = new SymmetricSecurityKey(keyBytes);

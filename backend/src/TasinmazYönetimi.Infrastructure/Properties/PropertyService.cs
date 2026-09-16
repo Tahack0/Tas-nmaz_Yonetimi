@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using NetTopologySuite.Geometries;
+using TasinmazYönetimi.Application.Auditing;
 using TasinmazYönetimi.Application.Properties;
 using TasinmazYönetimi.Domain.Entities;
 using TasinmazYönetimi.Domain.Enums;
@@ -10,13 +11,17 @@ namespace TasinmazYönetimi.Infrastructure.Properties;
 public class PropertyService : IPropertyService
 {
     private readonly ApplicationDbContext _db;
+    private readonly IAuditLogService _auditLogs;
 
     private readonly GeometryFactory _geometryFactory =
         new(new PrecisionModel(), 4326);
 
-    public PropertyService(ApplicationDbContext db)
+    public PropertyService(
+        ApplicationDbContext db,
+        IAuditLogService auditLogs)
     {
         _db = db;
+        _auditLogs = auditLogs;
     }
 
     public async Task<PropertyResponse> CreateAsync(
@@ -24,29 +29,50 @@ public class PropertyService : IPropertyService
         CreatePropertyRequest request,
         CancellationToken cancellationToken)
     {
-        ValidatePropertyType(request.PropertyType);
-
-        Polygon polygon = CreatePolygon(request.ExteriorRing);
-
-        var property = new Property
+        try
         {
-            Id = Guid.NewGuid(),
-            City = request.City.Trim(),
-            District = request.District.Trim(),
-            Neighborhood = request.Neighborhood.Trim(),
-            ParcelNumber = request.ParcelNumber.Trim(),
-            LotNumber = request.LotNumber.Trim(),
-            Address = request.Address.Trim(),
-            PropertyType = request.PropertyType,
-            Geometry = polygon,
-            UserId = userId,
-            CreatedAt = DateTime.UtcNow
-        };
+            ValidatePropertyType(request.PropertyType);
 
-        _db.Properties.Add(property);
-        await _db.SaveChangesAsync(cancellationToken);
+            Polygon polygon =
+                CreatePolygon(request.ExteriorRing);
 
-        return ToResponse(property);
+            var property = new Property
+            {
+                Id = Guid.NewGuid(),
+                City = request.City.Trim(),
+                District = request.District.Trim(),
+                Neighborhood = request.Neighborhood.Trim(),
+                ParcelNumber = request.ParcelNumber.Trim(),
+                LotNumber = request.LotNumber.Trim(),
+                Address = request.Address.Trim(),
+                PropertyType = request.PropertyType,
+                Geometry = polygon,
+                UserId = userId,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _db.Properties.Add(property);
+
+            _auditLogs.Add(
+                userId,
+                LogStatus.Successful,
+                OperationType.PropertyCreated,
+                $"Taşınmaz oluşturuldu. Taşınmaz Id: {property.Id}.");
+
+            await _db.SaveChangesAsync(cancellationToken);
+
+            return ToResponse(property);
+        }
+        catch (ArgumentException)
+        {
+            await AddFailedAuditAsync(
+                userId,
+                OperationType.PropertyCreated,
+                "Taşınmaz oluşturulamadı.",
+                cancellationToken);
+
+            throw;
+        }
     }
 
     public async Task<IReadOnlyList<PropertyResponse>> ListAsync(
@@ -59,7 +85,9 @@ public class PropertyService : IPropertyService
             .OrderByDescending(property => property.CreatedAt)
             .ToListAsync(cancellationToken);
 
-        return properties.Select(ToResponse).ToList();
+        return properties
+            .Select(ToResponse)
+            .ToList();
     }
 
     public async Task<PropertyResponse?> GetByIdAsync(
@@ -94,25 +122,53 @@ public class PropertyService : IPropertyService
                 cancellationToken);
 
         if (property is null)
+        {
+            await AddFailedAuditAsync(
+                userId,
+                OperationType.PropertyUpdated,
+                $"Taşınmaz güncellenemedi. Taşınmaz Id: {id}.",
+                cancellationToken);
+
             return null;
+        }
 
-        ValidatePropertyType(request.PropertyType);
+        try
+        {
+            ValidatePropertyType(request.PropertyType);
 
-        Polygon polygon = CreatePolygon(request.ExteriorRing);
+            Polygon polygon =
+                CreatePolygon(request.ExteriorRing);
 
-        property.City = request.City.Trim();
-        property.District = request.District.Trim();
-        property.Neighborhood = request.Neighborhood.Trim();
-        property.ParcelNumber = request.ParcelNumber.Trim();
-        property.LotNumber = request.LotNumber.Trim();
-        property.Address = request.Address.Trim();
-        property.PropertyType = request.PropertyType;
-        property.Geometry = polygon;
-        property.UpdatedAt = DateTime.UtcNow;
+            property.City = request.City.Trim();
+            property.District = request.District.Trim();
+            property.Neighborhood = request.Neighborhood.Trim();
+            property.ParcelNumber = request.ParcelNumber.Trim();
+            property.LotNumber = request.LotNumber.Trim();
+            property.Address = request.Address.Trim();
+            property.PropertyType = request.PropertyType;
+            property.Geometry = polygon;
+            property.UpdatedAt = DateTime.UtcNow;
 
-        await _db.SaveChangesAsync(cancellationToken);
+            _auditLogs.Add(
+                userId,
+                LogStatus.Successful,
+                OperationType.PropertyUpdated,
+                $"Taşınmaz güncellendi. Taşınmaz Id: {property.Id}.");
 
-        return ToResponse(property);
+            await _db.SaveChangesAsync(cancellationToken);
+
+            return ToResponse(property);
+        }
+        catch (ArgumentException)
+        {
+            await AddFailedAuditAsync(
+                userId,
+                OperationType.PropertyUpdated,
+                $"Taşınmaz güncellenemedi. Taşınmaz Id: {id}.",
+                cancellationToken);
+
+            throw;
+        }
     }
 
     public async Task<bool> DeleteAsync(
@@ -128,15 +184,46 @@ public class PropertyService : IPropertyService
                 cancellationToken);
 
         if (property is null)
+        {
+            await AddFailedAuditAsync(
+                userId,
+                OperationType.PropertyDeleted,
+                $"Taşınmaz silinemedi. Taşınmaz Id: {id}.",
+                cancellationToken);
+
             return false;
+        }
 
         _db.Properties.Remove(property);
+
+        _auditLogs.Add(
+            userId,
+            LogStatus.Successful,
+            OperationType.PropertyDeleted,
+            $"Taşınmaz silindi. Taşınmaz Id: {property.Id}.");
+
         await _db.SaveChangesAsync(cancellationToken);
 
         return true;
     }
 
-    private Polygon CreatePolygon(List<double[]> ring)
+    private async Task AddFailedAuditAsync(
+        Guid userId,
+        OperationType operationType,
+        string description,
+        CancellationToken cancellationToken)
+    {
+        _auditLogs.Add(
+            userId,
+            LogStatus.Failed,
+            operationType,
+            description);
+
+        await _db.SaveChangesAsync(cancellationToken);
+    }
+
+    private Polygon CreatePolygon(
+        List<double[]> ring)
     {
         if (ring is null ||
             ring.Count < 4 ||
@@ -156,16 +243,19 @@ public class PropertyService : IPropertyService
         }
 
         Coordinate[] coordinates = ring
-            .Select(point => new Coordinate(point[0], point[1]))
+            .Select(point =>
+                new Coordinate(point[0], point[1]))
             .ToArray();
 
-        if (!coordinates[0].Equals2D(coordinates[^1]))
+        if (!coordinates[0]
+                .Equals2D(coordinates[^1]))
         {
             throw new ArgumentException(
                 "Poligonun ilk ve son noktası aynı olmalı.");
         }
 
-        Polygon polygon = _geometryFactory.CreatePolygon(coordinates);
+        Polygon polygon =
+            _geometryFactory.CreatePolygon(coordinates);
 
         if (polygon.IsEmpty ||
             !polygon.IsValid ||
