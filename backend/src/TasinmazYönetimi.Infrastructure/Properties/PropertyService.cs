@@ -57,7 +57,7 @@ public class PropertyService : IPropertyService
                 userId,
                 LogStatus.Successful,
                 OperationType.PropertyCreated,
-                $"Taşınmaz oluşturuldu. Taşınmaz Id: {property.Id}.");
+                $"Tasinmaz olusturuldu. Tasinmaz Id: {property.Id}.");
 
             await _db.SaveChangesAsync(cancellationToken);
 
@@ -68,7 +68,7 @@ public class PropertyService : IPropertyService
             await AddFailedAuditAsync(
                 userId,
                 OperationType.PropertyCreated,
-                "Taşınmaz oluşturulamadı.",
+                "Tasinmaz olusturulamadi.",
                 cancellationToken);
 
             throw;
@@ -77,36 +77,41 @@ public class PropertyService : IPropertyService
 
     public async Task<IReadOnlyList<PropertyResponse>> ListAsync(
         Guid userId,
+        UserRole userRole,
         CancellationToken cancellationToken)
     {
-        var properties = await _db.Properties
-            .AsNoTracking()
-            .Where(property => property.UserId == userId)
-            .OrderByDescending(property => property.CreatedAt)
-            .ToListAsync(cancellationToken);
+        IQueryable<Property> query = _db.Properties.AsNoTracking();
 
-        return properties
-            .Select(ToResponse)
-            .ToList();
+        if(userRole != UserRole.Admin){
+            query = query.Where(property =>property.UserId == userId);
+
+        }
+        var properties = await query.OrderByDescending(property => property.CreatedAt).ToListAsync(cancellationToken);
+
+    return properties.Select(ToResponse).ToList();
     }
+        
+    
 
     public async Task<PropertyResponse?> GetByIdAsync(
-        Guid userId,
-        Guid id,
-        CancellationToken cancellationToken)
-    {
-        var property = await _db.Properties
-            .AsNoTracking()
-            .FirstOrDefaultAsync(
-                property =>
-                    property.Id == id &&
-                    property.UserId == userId,
-                cancellationToken);
+         Guid userId,
+    UserRole userRole,
+    Guid id,
+    CancellationToken cancellationToken)
+{
+    IQueryable<Property> query = _db.Properties.AsNoTracking().Where(property => property.Id == id);
 
-        return property is null
-            ? null
-            : ToResponse(property);
+    if (userRole != UserRole.Admin)
+    {
+        query = query.Where(property => property.UserId == userId);
     }
+
+    var property = await query.FirstOrDefaultAsync(cancellationToken);
+
+    return property is null
+        ? null
+        : ToResponse(property);
+}
 
     public async Task<PropertyResponse?> UpdateAsync(
         Guid userId,
@@ -114,19 +119,13 @@ public class PropertyService : IPropertyService
         UpdatePropertyRequest request,
         CancellationToken cancellationToken)
     {
-        var property = await _db.Properties
-            .FirstOrDefaultAsync(
-                property =>
-                    property.Id == id &&
-                    property.UserId == userId,
-                cancellationToken);
-
+        var property = await _db.Properties.FirstOrDefaultAsync(property => property.Id == id && property.UserId == userId,cancellationToken);
         if (property is null)
         {
             await AddFailedAuditAsync(
                 userId,
                 OperationType.PropertyUpdated,
-                $"Taşınmaz güncellenemedi. Taşınmaz Id: {id}.",
+                $"Tasinmaz güncellenemedi. Tasinmaz Id: {id}.",
                 cancellationToken);
 
             return null;
@@ -136,8 +135,7 @@ public class PropertyService : IPropertyService
         {
             ValidatePropertyType(request.PropertyType);
 
-            Polygon polygon =
-                CreatePolygon(request.ExteriorRing);
+            Polygon polygon = CreatePolygon(request.ExteriorRing);
 
             property.City = request.City.Trim();
             property.District = request.District.Trim();
@@ -153,7 +151,7 @@ public class PropertyService : IPropertyService
                 userId,
                 LogStatus.Successful,
                 OperationType.PropertyUpdated,
-                $"Taşınmaz güncellendi. Taşınmaz Id: {property.Id}.");
+                $"Tasinmaz güncellendi. Tasinmaz Id: {property.Id}.");
 
             await _db.SaveChangesAsync(cancellationToken);
 
@@ -164,7 +162,7 @@ public class PropertyService : IPropertyService
             await AddFailedAuditAsync(
                 userId,
                 OperationType.PropertyUpdated,
-                $"Taşınmaz güncellenemedi. Taşınmaz Id: {id}.",
+                $"Tasinmaz güncellenemedi. Tasinmaz Id: {id}.",
                 cancellationToken);
 
             throw;
@@ -188,7 +186,7 @@ public class PropertyService : IPropertyService
             await AddFailedAuditAsync(
                 userId,
                 OperationType.PropertyDeleted,
-                $"Taşınmaz silinemedi. Taşınmaz Id: {id}.",
+                $"Tasinmaz silinemedi. Tasinmaz Id: {id}.",
                 cancellationToken);
 
             return false;
@@ -200,7 +198,7 @@ public class PropertyService : IPropertyService
             userId,
             LogStatus.Successful,
             OperationType.PropertyDeleted,
-            $"Taşınmaz silindi. Taşınmaz Id: {property.Id}.");
+            $"Tasinmaz silindi. Tasinmaz Id: {property.Id}.");
 
         await _db.SaveChangesAsync(cancellationToken);
 
@@ -239,7 +237,7 @@ public class PropertyService : IPropertyService
                 point[1] > 90))
         {
             throw new ArgumentException(
-                "Poligon en az 4 geçerli [boylam, enlem] noktası içermeli.");
+                "Poligon en az 4 geçerli [boylam, enlem] noktasi içermeli.");
         }
 
         Coordinate[] coordinates = ring
@@ -251,7 +249,7 @@ public class PropertyService : IPropertyService
                 .Equals2D(coordinates[^1]))
         {
             throw new ArgumentException(
-                "Poligonun ilk ve son noktası aynı olmalı.");
+                "Poligonun ilk ve son noktasi ayni olmali.");
         }
 
         Polygon polygon =
@@ -274,7 +272,7 @@ public class PropertyService : IPropertyService
         if (!Enum.IsDefined(propertyType))
         {
             throw new ArgumentException(
-                "Geçersiz taşınmaz türü.");
+                "Geçersiz taşinmaz türü.");
         }
     }
 

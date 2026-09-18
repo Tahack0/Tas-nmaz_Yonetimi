@@ -3,6 +3,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TasinmazYönetimi.Application.Properties;
+using TasinmazYönetimi.Domain.Enums;
 
 namespace TasinmazYönetimi.Api.Controllers;
 
@@ -19,6 +20,7 @@ public class PropertiesController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = nameof(UserRole.User))]
     public async Task<IActionResult> Create(
         [FromBody] CreatePropertyRequest request,
         CancellationToken cancellationToken)
@@ -55,9 +57,14 @@ public class PropertiesController : ControllerBase
         if (!TryGetUserId(out Guid userId))
             return Unauthorized();
 
-        var result = await _properties.ListAsync(
-            userId,
-            cancellationToken);
+        if (!TryGetUserRole(out UserRole userRole))
+            return Forbid();
+
+        IReadOnlyList<PropertyResponse> result =
+            await _properties.ListAsync(
+                userId,
+                userRole,
+                cancellationToken);
 
         return Ok(result);
     }
@@ -70,9 +77,13 @@ public class PropertiesController : ControllerBase
         if (!TryGetUserId(out Guid userId))
             return Unauthorized();
 
+        if (!TryGetUserRole(out UserRole userRole))
+            return Forbid();
+
         PropertyResponse? result =
             await _properties.GetByIdAsync(
                 userId,
+                userRole,
                 id,
                 cancellationToken);
 
@@ -82,6 +93,7 @@ public class PropertiesController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = nameof(UserRole.User))]
     public async Task<IActionResult> Update(
         Guid id,
         [FromBody] UpdatePropertyRequest request,
@@ -113,6 +125,7 @@ public class PropertiesController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = nameof(UserRole.User))]
     public async Task<IActionResult> Delete(
         Guid id,
         CancellationToken cancellationToken)
@@ -134,4 +147,10 @@ public class PropertiesController : ControllerBase
         Guid.TryParse(
             User.FindFirstValue(JwtRegisteredClaimNames.Sub),
             out userId);
+
+    private bool TryGetUserRole(out UserRole userRole) =>
+        Enum.TryParse(
+            User.FindFirstValue(ClaimTypes.Role),
+            ignoreCase: true,
+            out userRole);
 }

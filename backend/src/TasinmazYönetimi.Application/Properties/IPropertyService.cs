@@ -1,3 +1,5 @@
+using TasinmazYönetimi.Domain.Enums;
+
 namespace TasinmazYönetimi.Application.Properties;
 
 public interface IPropertyService
@@ -9,10 +11,12 @@ public interface IPropertyService
 
     Task<IReadOnlyList<PropertyResponse>> ListAsync(
         Guid userId,
+        UserRole userRole,
         CancellationToken cancellationToken);
 
     Task<PropertyResponse?> GetByIdAsync(
         Guid userId,
+        UserRole userRole,
         Guid id,
         CancellationToken cancellationToken);
 
