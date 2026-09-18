@@ -1,3 +1,4 @@
+using TasinmazYönetimi.Application.Common;
 using TasinmazYönetimi.Domain.Enums;
 
 namespace TasinmazYönetimi.Application.Properties;
@@ -9,9 +10,10 @@ public interface IPropertyService
         CreatePropertyRequest request,
         CancellationToken cancellationToken);
 
-    Task<IReadOnlyList<PropertyResponse>> ListAsync(
+    Task<PagedResponse<PropertyResponse>> ListAsync(
         Guid userId,
         UserRole userRole,
+        PropertyQuery query,
         CancellationToken cancellationToken);
 
     Task<PropertyResponse?> GetByIdAsync(

@@ -51,23 +51,24 @@ public class PropertiesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> List(
-        CancellationToken cancellationToken)
-    {
-        if (!TryGetUserId(out Guid userId))
-            return Unauthorized();
+public async Task<IActionResult> List(
+    [FromQuery] PropertyQuery query,
+    CancellationToken cancellationToken)
+{
+    if (!TryGetUserId(out Guid userId))
+        return Unauthorized();
 
-        if (!TryGetUserRole(out UserRole userRole))
-            return Forbid();
+    if (!TryGetUserRole(out UserRole userRole))
+        return Forbid();
 
-        IReadOnlyList<PropertyResponse> result =
-            await _properties.ListAsync(
-                userId,
-                userRole,
-                cancellationToken);
+    var result = await _properties.ListAsync(
+        userId,
+        userRole,
+        query,
+        cancellationToken);
 
-        return Ok(result);
-    }
+    return Ok(result);
+}
 
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(
