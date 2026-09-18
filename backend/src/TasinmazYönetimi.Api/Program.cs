@@ -1,3 +1,4 @@
+using PdfSharp.Fonts;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using TasinmazYönetimi.Api.Security;
@@ -11,8 +12,15 @@ using TasinmazYönetimi.Api.Services;
 using TasinmazYönetimi.Application.Auditing;
 using TasinmazYönetimi.Application.Common;
 using TasinmazYönetimi.Infrastructure.Auditing;
+using Microsoft.AspNetCore.WebSockets;
+
 
 var builder = WebApplication.CreateBuilder(args);
+
+if (OperatingSystem.IsWindows())
+{
+    GlobalFontSettings.UseWindowsFontsUnderWindows = true;
+}
 
 builder.Services.AddPersistence(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
@@ -21,6 +29,7 @@ builder.Services.AddScoped<IAuditLogService,AuditLogService>();
 builder.Services.AddScoped<IRegistrationService, RegistrationService>();
 builder.Services.AddScoped<ILoginService, LoginService>();
 builder.Services.AddScoped<IPropertyService,PropertyService>();
+builder.Services.AddScoped<IPropertyExportService,PropertyExportService>();
 
 
 string jwtKey = builder.Configuration["Jwt:Key"]

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TasinmazYönetimi.Application.Properties;
 using TasinmazYönetimi.Domain.Enums;
+using TasinmazYönetimi.Application.Common;
 
 namespace TasinmazYönetimi.Api.Controllers;
 
@@ -13,10 +14,13 @@ namespace TasinmazYönetimi.Api.Controllers;
 public class PropertiesController : ControllerBase
 {
     private readonly IPropertyService _properties;
+    private readonly IPropertyExportService _propertyExports;
 
-    public PropertiesController(IPropertyService properties)
+    public PropertiesController(IPropertyService properties, IPropertyExportService propertyExports)
     {
         _properties = properties;
+        _propertyExports = propertyExports;
+
     }
 
     [HttpPost]
@@ -68,6 +72,53 @@ public async Task<IActionResult> List(
         cancellationToken);
 
     return Ok(result);
+}
+[HttpGet("export/excel")]
+public async Task<IActionResult> ExportExcel(
+    [FromQuery] PropertyExportQuery query,
+    CancellationToken cancellationToken)
+{
+    if (!TryGetUserId(out Guid userId))
+        return Unauthorized();
+
+    if (!TryGetUserRole(out UserRole userRole))
+        return Forbid();
+
+    ExportFileResponse result =
+        await _propertyExports.ExportExcelAsync(
+            userId,
+            userRole,
+            query,
+            cancellationToken);
+
+    return File(
+        result.Content,
+        result.ContentType,
+        result.FileName);
+}
+
+[HttpGet("export/pdf")]
+public async Task<IActionResult> ExportPdf(
+    [FromQuery] PropertyExportQuery query,
+    CancellationToken cancellationToken)
+{
+    if (!TryGetUserId(out Guid userId))
+        return Unauthorized();
+
+    if (!TryGetUserRole(out UserRole userRole))
+        return Forbid();
+
+    ExportFileResponse result =
+        await _propertyExports.ExportPdfAsync(
+            userId,
+            userRole,
+            query,
+            cancellationToken);
+
+    return File(
+        result.Content,
+        result.ContentType,
+        result.FileName);
 }
 
     [HttpGet("{id:guid}")]
