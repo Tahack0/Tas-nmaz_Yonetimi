@@ -313,50 +313,65 @@ public class PropertyService : IPropertyService
         await _db.SaveChangesAsync(cancellationToken);
     }
 
-    private Polygon CreatePolygon(
-        List<double[]> ring)
+   private Polygon CreatePolygon(
+    List<double[]> ring)
+{
+    if (ring is null || ring.Count != 5)
     {
-        if (ring is null ||
-            ring.Count < 4 ||
-            ring.Count > 10_000 ||
-            ring.Any(point =>
-                point is null ||
-                point.Length != 2 ||
-                !double.IsFinite(point[0]) ||
-                !double.IsFinite(point[1]) ||
-                point[0] < -180 ||
-                point[0] > 180 ||
-                point[1] < -90 ||
-                point[1] > 90))
-        {
-            throw new ArgumentException(
-                "Poligon en az 4 geçerli [boylam, enlem] noktasi içermeli.");
-        }
+        throw new ArgumentException(
+            "Poligon 4 nokta ve başlangıç noktasının tekrarıyla toplam 5 koordinat içermeli.");
+    }
 
-        Coordinate[] coordinates = ring
-            .Select(point =>
-                new Coordinate(point[0], point[1]))
-            .ToArray();
+    if (ring.Any(point =>
+        point is null ||
+        point.Length != 2 ||
+        !double.IsFinite(point[0]) ||
+        !double.IsFinite(point[1]) ||
+        point[0] < -180 ||
+        point[0] > 180 ||
+        point[1] < -90 ||
+        point[1] > 90))
+    {
+        throw new ArgumentException(
+            "Poligon geçerli [boylam, enlem] koordinatları içermeli.");
+    }
 
-        if (!coordinates[0]
-                .Equals2D(coordinates[^1]))
-        {
-            throw new ArgumentException(
-                "Poligonun ilk ve son noktasi ayni olmali.");
-        }
+    Coordinate[] coordinates = ring
+        .Select(point =>
+            new Coordinate(point[0], point[1]))
+        .ToArray();
 
-        Polygon polygon =
-            _geometryFactory.CreatePolygon(coordinates);
+    if (!coordinates[0].Equals2D(coordinates[^1]))
+    {
+        throw new ArgumentException(
+            "Poligonun ilk ve son noktası aynı olmalı.");
+    }
 
-        if (polygon.IsEmpty ||
-            !polygon.IsValid ||
-            polygon.Area == 0)
-        {
-            throw new ArgumentException(
-                "Poligon geometrisi geçersiz.");
-        }
+    int distinctPointCount = coordinates
+        .Take(4)
+        .Select(coordinate =>
+            (coordinate.X, coordinate.Y))
+        .Distinct()
+        .Count();
 
-        return polygon;
+    if (distinctPointCount != 4)
+    {
+        throw new ArgumentException(
+            "Poligonun seçilen 4 noktası birbirinden farklı olmalı.");
+    }
+
+    Polygon polygon =
+        _geometryFactory.CreatePolygon(coordinates);
+
+    if (polygon.IsEmpty ||
+        !polygon.IsValid ||
+        polygon.Area == 0)
+    {
+        throw new ArgumentException(
+            "Poligon geometrisi geçersiz.");
+    }
+
+      return polygon;
     }
 
     private static void ValidatePropertyType(
