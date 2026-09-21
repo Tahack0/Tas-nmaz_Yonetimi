@@ -30,6 +30,7 @@ builder.Services.AddScoped<IRegistrationService, RegistrationService>();
 builder.Services.AddScoped<ILoginService, LoginService>();
 builder.Services.AddScoped<IPropertyService,PropertyService>();
 builder.Services.AddScoped<IPropertyExportService,PropertyExportService>();
+builder.Services.AddScoped<IAuditLogExportService,AuditLogExportService>();
 
 
 string jwtKey = builder.Configuration["Jwt:Key"]
