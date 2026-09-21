@@ -13,6 +13,9 @@ using TasinmazYönetimi.Application.Auditing;
 using TasinmazYönetimi.Application.Common;
 using TasinmazYönetimi.Infrastructure.Auditing;
 using Microsoft.AspNetCore.WebSockets;
+using TasinmazYönetimi.Application.Users;
+using TasinmazYönetimi.Infrastructure.Users;
+
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -32,6 +35,7 @@ builder.Services.AddScoped<IPropertyService,PropertyService>();
 builder.Services.AddScoped<IPropertyExportService,PropertyExportService>();
 builder.Services.AddScoped<IAuditLogExportService,AuditLogExportService>();
 builder.Services.AddScoped<IPropertyImportService,PropertyImportService>();
+builder.Services.AddScoped<IUserManagementService,UserManagementService>();
 
 
 string jwtKey = builder.Configuration["Jwt:Key"]
