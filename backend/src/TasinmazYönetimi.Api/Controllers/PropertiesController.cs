@@ -15,12 +15,13 @@ public class PropertiesController : ControllerBase
 {
     private readonly IPropertyService _properties;
     private readonly IPropertyExportService _propertyExports;
+    private readonly IPropertyImportService _propertyImport;
 
-    public PropertiesController(IPropertyService properties, IPropertyExportService propertyExports)
+    public PropertiesController(IPropertyService properties, IPropertyExportService propertyExports , IPropertyImportService propertyImport)
     {
         _properties = properties;
         _propertyExports = propertyExports;
-
+        _propertyImport = propertyImport;
     }
 
     [HttpPost]
@@ -193,6 +194,52 @@ public async Task<IActionResult> ExportPdf(
         return deleted
             ? NoContent()
             : NotFound();
+    }
+
+    [HttpPost("import/excel")]
+    [Authorize(Roles = nameof(UserRole.User))]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> ImportExcel(
+         IFormFile file,
+         CancellationToken cancellationToken)
+    {
+        if (!TryGetUserId(out Guid userId))
+            return Unauthorized();
+
+        if (file is null ||
+            file.Length == 0 ||
+            !string.Equals(
+                Path.GetExtension(file.FileName),
+                ".xlsx",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return BadRequest(new
+            {
+                message =
+                    "Import failed. Please check the file format and data."
+            });
+        }
+
+        try
+        {
+            await using Stream fileStream =
+                file.OpenReadStream();
+
+            PropertyImportResponse result =
+                await _propertyImport.ImportAsync(
+                    userId,
+                    fileStream,
+                    cancellationToken);
+
+            return Ok(result);
+        }
+        catch (ArgumentException exception)
+        {
+            return BadRequest(new
+            {
+                message = exception.Message
+            });
+        }
     }
 
     private bool TryGetUserId(out Guid userId) =>
