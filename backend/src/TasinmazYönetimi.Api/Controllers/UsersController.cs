@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TasinmazYönetimi.Application.Users;
 using TasinmazYönetimi.Domain.Enums;
-using System.Security.Claims;
+
 
 namespace TasinmazYönetimi.Api.Controllers;
 
@@ -128,11 +128,11 @@ public sealed class UsersController : ControllerBase
             : NotFound(new { message = "User not found." });
     }
 
-        private bool TryGetUserId(out Guid userId)
+    private bool TryGetUserId(out Guid userId)
     {
         string? value =
             User.FindFirstValue(ClaimTypes.NameIdentifier) ??
-            User.FindFirstValue("sub") ??   
+            User.FindFirstValue("sub") ??
             User.FindFirstValue("userId");
 
         return Guid.TryParse(value, out userId);

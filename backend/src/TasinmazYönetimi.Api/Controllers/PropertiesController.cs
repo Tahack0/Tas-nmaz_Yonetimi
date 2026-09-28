@@ -17,7 +17,7 @@ public class PropertiesController : ControllerBase
     private readonly IPropertyExportService _propertyExports;
     private readonly IPropertyImportService _propertyImport;
 
-    public PropertiesController(IPropertyService properties, IPropertyExportService propertyExports , IPropertyImportService propertyImport)
+    public PropertiesController(IPropertyService properties, IPropertyExportService propertyExports, IPropertyImportService propertyImport)
     {
         _properties = properties;
         _propertyExports = propertyExports;
@@ -56,71 +56,71 @@ public class PropertiesController : ControllerBase
     }
 
     [HttpGet]
-public async Task<IActionResult> List(
+    public async Task<IActionResult> List(
     [FromQuery] PropertyQuery query,
     CancellationToken cancellationToken)
-{
-    if (!TryGetUserId(out Guid userId))
-        return Unauthorized();
+    {
+        if (!TryGetUserId(out Guid userId))
+            return Unauthorized();
 
-    if (!TryGetUserRole(out UserRole userRole))
-        return Forbid();
+        if (!TryGetUserRole(out UserRole userRole))
+            return Forbid();
 
-    var result = await _properties.ListAsync(
-        userId,
-        userRole,
-        query,
-        cancellationToken);
-
-    return Ok(result);
-}
-[HttpGet("export/excel")]
-public async Task<IActionResult> ExportExcel(
-    [FromQuery] PropertyExportQuery query,
-    CancellationToken cancellationToken)
-{
-    if (!TryGetUserId(out Guid userId))
-        return Unauthorized();
-
-    if (!TryGetUserRole(out UserRole userRole))
-        return Forbid();
-
-    ExportFileResponse result =
-        await _propertyExports.ExportExcelAsync(
+        var result = await _properties.ListAsync(
             userId,
             userRole,
             query,
             cancellationToken);
 
-    return File(
-        result.Content,
-        result.ContentType,
-        result.FileName);
-}
+        return Ok(result);
+    }
+    [HttpGet("export/excel")]
+    public async Task<IActionResult> ExportExcel(
+        [FromQuery] PropertyExportQuery query,
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetUserId(out Guid userId))
+            return Unauthorized();
 
-[HttpGet("export/pdf")]
-public async Task<IActionResult> ExportPdf(
-    [FromQuery] PropertyExportQuery query,
-    CancellationToken cancellationToken)
-{
-    if (!TryGetUserId(out Guid userId))
-        return Unauthorized();
+        if (!TryGetUserRole(out UserRole userRole))
+            return Forbid();
 
-    if (!TryGetUserRole(out UserRole userRole))
-        return Forbid();
+        ExportFileResponse result =
+            await _propertyExports.ExportExcelAsync(
+                userId,
+                userRole,
+                query,
+                cancellationToken);
 
-    ExportFileResponse result =
-        await _propertyExports.ExportPdfAsync(
-            userId,
-            userRole,
-            query,
-            cancellationToken);
+        return File(
+            result.Content,
+            result.ContentType,
+            result.FileName);
+    }
 
-    return File(
-        result.Content,
-        result.ContentType,
-        result.FileName);
-}
+    [HttpGet("export/pdf")]
+    public async Task<IActionResult> ExportPdf(
+        [FromQuery] PropertyExportQuery query,
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetUserId(out Guid userId))
+            return Unauthorized();
+
+        if (!TryGetUserRole(out UserRole userRole))
+            return Forbid();
+
+        ExportFileResponse result =
+            await _propertyExports.ExportPdfAsync(
+                userId,
+                userRole,
+                query,
+                cancellationToken);
+
+        return File(
+            result.Content,
+            result.ContentType,
+            result.FileName);
+    }
 
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(

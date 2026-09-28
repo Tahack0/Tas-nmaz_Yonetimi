@@ -27,15 +27,15 @@ if (OperatingSystem.IsWindows())
 
 builder.Services.AddPersistence(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<ICurrentRequestContext,HttpCurrentRequestContext>();
-builder.Services.AddScoped<IAuditLogService,AuditLogService>();
+builder.Services.AddScoped<ICurrentRequestContext, HttpCurrentRequestContext>();
+builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 builder.Services.AddScoped<IRegistrationService, RegistrationService>();
 builder.Services.AddScoped<ILoginService, LoginService>();
-builder.Services.AddScoped<IPropertyService,PropertyService>();
-builder.Services.AddScoped<IPropertyExportService,PropertyExportService>();
-builder.Services.AddScoped<IAuditLogExportService,AuditLogExportService>();
-builder.Services.AddScoped<IPropertyImportService,PropertyImportService>();
-builder.Services.AddScoped<IUserManagementService,UserManagementService>();
+builder.Services.AddScoped<IPropertyService, PropertyService>();
+builder.Services.AddScoped<IPropertyExportService, PropertyExportService>();
+builder.Services.AddScoped<IAuditLogExportService, AuditLogExportService>();
+builder.Services.AddScoped<IPropertyImportService, PropertyImportService>();
+builder.Services.AddScoped<IUserManagementService, UserManagementService>();
 
 
 string jwtKey = builder.Configuration["Jwt:Key"]
@@ -71,7 +71,20 @@ builder.Services
             RoleClaimType = System.Security.Claims.ClaimTypes.Role
         };
     });
+const string FrontendCorsPolicy = "Frontend";
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(
+        FrontendCorsPolicy,
+        policy =>
+        {
+            policy
+                .WithOrigins("http://localhost:4200")
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        });
+});
 builder.Services.AddAuthorization();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -86,6 +99,8 @@ builder.Services.AddSwaggerGen(options =>
         Scheme = "bearer",
         BearerFormat = "JWT"
     });
+
+
 
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
@@ -112,6 +127,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors(FrontendCorsPolicy);
 app.UseAuthentication();
 app.UseAuthorization();
 

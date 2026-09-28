@@ -1,6 +1,6 @@
 namespace TasinmazYönetimi.Domain.Enums;
 public enum LogStatus
-{ 
-    Successful=1,
-    Failed=2
+{
+    Successful = 1,
+    Failed = 2
 }

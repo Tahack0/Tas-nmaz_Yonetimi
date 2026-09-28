@@ -45,10 +45,10 @@ public class AuditLogsController : ControllerBase
             });
         }
     }
-        [HttpGet("export/excel")]
+    [HttpGet("export/excel")]
     public async Task<IActionResult> ExportExcel(
-        [FromQuery] AuditLogExportQuery query,
-        CancellationToken cancellationToken)
+    [FromQuery] AuditLogExportQuery query,
+    CancellationToken cancellationToken)
     {
         try
         {

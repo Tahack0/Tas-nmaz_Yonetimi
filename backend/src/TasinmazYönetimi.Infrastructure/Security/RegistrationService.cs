@@ -46,7 +46,7 @@ public class RegistrationService : IRegistrationService
         }
         catch (DbUpdateException ex)
             when (ex.InnerException is PostgresException
-                  { SqlState: PostgresErrorCodes.UniqueViolation })
+            { SqlState: PostgresErrorCodes.UniqueViolation })
         {
             return null;
         }

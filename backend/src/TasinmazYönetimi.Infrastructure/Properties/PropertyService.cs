@@ -82,129 +82,129 @@ public class PropertyService : IPropertyService
     UserRole userRole,
     PropertyQuery request,
     CancellationToken cancellationToken)
-{
-    IQueryable<Property> query =
-        _db.Properties.AsNoTracking();
-
-    if (userRole == UserRole.Admin)
     {
-        if (request.UserId.HasValue)
+        IQueryable<Property> query =
+            _db.Properties.AsNoTracking();
+
+        if (userRole == UserRole.Admin)
+        {
+            if (request.UserId.HasValue)
+            {
+                query = query.Where(property =>
+                    property.UserId == request.UserId.Value);
+            }
+        }
+        else
         {
             query = query.Where(property =>
-                property.UserId == request.UserId.Value);
+                property.UserId == userId);
         }
+
+        if (!string.IsNullOrWhiteSpace(request.City))
+        {
+            string city = request.City.Trim();
+
+            query = query.Where(property =>
+                EF.Functions.ILike(
+                    property.City,
+                    $"%{city}%"));
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.District))
+        {
+            string district = request.District.Trim();
+
+            query = query.Where(property =>
+                EF.Functions.ILike(
+                    property.District,
+                    $"%{district}%"));
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Neighborhood))
+        {
+            string neighborhood =
+                request.Neighborhood.Trim();
+
+            query = query.Where(property =>
+                EF.Functions.ILike(
+                    property.Neighborhood,
+                    $"%{neighborhood}%"));
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.ParcelNumber))
+        {
+            string parcelNumber =
+                request.ParcelNumber.Trim();
+
+            query = query.Where(property =>
+                EF.Functions.ILike(
+                    property.ParcelNumber,
+                    $"%{parcelNumber}%"));
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.LotNumber))
+        {
+            string lotNumber =
+                request.LotNumber.Trim();
+
+            query = query.Where(property =>
+                EF.Functions.ILike(
+                    property.LotNumber,
+                    $"%{lotNumber}%"));
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Address))
+        {
+            string address = request.Address.Trim();
+
+            query = query.Where(property =>
+                EF.Functions.ILike(
+                    property.Address,
+                    $"%{address}%"));
+        }
+
+        if (request.PropertyType.HasValue)
+        {
+            query = query.Where(property =>
+                property.PropertyType ==
+                request.PropertyType.Value);
+        }
+
+        int totalCount =
+            await query.CountAsync(cancellationToken);
+
+        var properties = await query
+            .OrderByDescending(property =>
+                property.CreatedAt)
+            .Skip((request.Page - 1) * request.PageSize)
+            .Take(request.PageSize)
+            .ToListAsync(cancellationToken);
+
+        int totalPages = (int)Math.Ceiling(
+            totalCount / (double)request.PageSize);
+
+        return new PagedResponse<PropertyResponse>(properties.Select(ToResponse).ToList(), request.Page, request.PageSize, totalCount, totalPages);
     }
-    else
-    {
-        query = query.Where(property =>
-            property.UserId == userId);
-    }
-
-    if (!string.IsNullOrWhiteSpace(request.City))
-    {
-        string city = request.City.Trim();
-
-        query = query.Where(property =>
-            EF.Functions.ILike(
-                property.City,
-                $"%{city}%"));
-    }
-
-    if (!string.IsNullOrWhiteSpace(request.District))
-    {
-        string district = request.District.Trim();
-
-        query = query.Where(property =>
-            EF.Functions.ILike(
-                property.District,
-                $"%{district}%"));
-    }
-
-    if (!string.IsNullOrWhiteSpace(request.Neighborhood))
-    {
-        string neighborhood =
-            request.Neighborhood.Trim();
-
-        query = query.Where(property =>
-            EF.Functions.ILike(
-                property.Neighborhood,
-                $"%{neighborhood}%"));
-    }
-
-    if (!string.IsNullOrWhiteSpace(request.ParcelNumber))
-    {
-        string parcelNumber =
-            request.ParcelNumber.Trim();
-
-        query = query.Where(property =>
-            EF.Functions.ILike(
-                property.ParcelNumber,
-                $"%{parcelNumber}%"));
-    }
-
-    if (!string.IsNullOrWhiteSpace(request.LotNumber))
-    {
-        string lotNumber =
-            request.LotNumber.Trim();
-
-        query = query.Where(property =>
-            EF.Functions.ILike(
-                property.LotNumber,
-                $"%{lotNumber}%"));
-    }
-
-    if (!string.IsNullOrWhiteSpace(request.Address))
-    {
-        string address = request.Address.Trim();
-
-        query = query.Where(property =>
-            EF.Functions.ILike(
-                property.Address,
-                $"%{address}%"));
-    }
-
-    if (request.PropertyType.HasValue)
-    {
-        query = query.Where(property =>
-            property.PropertyType ==
-            request.PropertyType.Value);
-    }
-
-    int totalCount =
-        await query.CountAsync(cancellationToken);
-
-    var properties = await query
-        .OrderByDescending(property =>
-            property.CreatedAt)
-        .Skip((request.Page - 1) * request.PageSize)
-        .Take(request.PageSize)
-        .ToListAsync(cancellationToken);
-
-    int totalPages = (int)Math.Ceiling(
-        totalCount / (double)request.PageSize);
-
-    return new PagedResponse<PropertyResponse>(properties.Select(ToResponse).ToList(),request.Page,request.PageSize,totalCount,totalPages);
-}
 
     public async Task<PropertyResponse?> GetByIdAsync(
          Guid userId,
     UserRole userRole,
     Guid id,
     CancellationToken cancellationToken)
-{
-    IQueryable<Property> query = _db.Properties.AsNoTracking().Where(property => property.Id == id);
-
-    if (userRole != UserRole.Admin)
     {
-        query = query.Where(property => property.UserId == userId);
+        IQueryable<Property> query = _db.Properties.AsNoTracking().Where(property => property.Id == id);
+
+        if (userRole != UserRole.Admin)
+        {
+            query = query.Where(property => property.UserId == userId);
+        }
+
+        var property = await query.FirstOrDefaultAsync(cancellationToken);
+
+        return property is null
+            ? null
+            : ToResponse(property);
     }
-
-    var property = await query.FirstOrDefaultAsync(cancellationToken);
-
-    return property is null
-        ? null
-        : ToResponse(property);
-}
 
     public async Task<PropertyResponse?> UpdateAsync(
         Guid userId,
@@ -212,7 +212,7 @@ public class PropertyService : IPropertyService
         UpdatePropertyRequest request,
         CancellationToken cancellationToken)
     {
-        var property = await _db.Properties.FirstOrDefaultAsync(property => property.Id == id && property.UserId == userId,cancellationToken);
+        var property = await _db.Properties.FirstOrDefaultAsync(property => property.Id == id && property.UserId == userId, cancellationToken);
         if (property is null)
         {
             await AddFailedAuditAsync(
@@ -313,65 +313,65 @@ public class PropertyService : IPropertyService
         await _db.SaveChangesAsync(cancellationToken);
     }
 
-   private Polygon CreatePolygon(
-    List<double[]> ring)
-{
-    if (ring is null || ring.Count != 5)
+    private Polygon CreatePolygon(
+     List<double[]> ring)
     {
-        throw new ArgumentException(
-            "Poligon 4 nokta ve başlangıç noktasının tekrarıyla toplam 5 koordinat içermeli.");
-    }
+        if (ring is null || ring.Count != 5)
+        {
+            throw new ArgumentException(
+                "Poligon 4 nokta ve başlangıç noktasının tekrarıyla toplam 5 koordinat içermeli.");
+        }
 
-    if (ring.Any(point =>
-        point is null ||
-        point.Length != 2 ||
-        !double.IsFinite(point[0]) ||
-        !double.IsFinite(point[1]) ||
-        point[0] < -180 ||
-        point[0] > 180 ||
-        point[1] < -90 ||
-        point[1] > 90))
-    {
-        throw new ArgumentException(
-            "Poligon geçerli [boylam, enlem] koordinatları içermeli.");
-    }
+        if (ring.Any(point =>
+            point is null ||
+            point.Length != 2 ||
+            !double.IsFinite(point[0]) ||
+            !double.IsFinite(point[1]) ||
+            point[0] < -180 ||
+            point[0] > 180 ||
+            point[1] < -90 ||
+            point[1] > 90))
+        {
+            throw new ArgumentException(
+                "Poligon geçerli [boylam, enlem] koordinatları içermeli.");
+        }
 
-    Coordinate[] coordinates = ring
-        .Select(point =>
-            new Coordinate(point[0], point[1]))
-        .ToArray();
+        Coordinate[] coordinates = ring
+            .Select(point =>
+                new Coordinate(point[0], point[1]))
+            .ToArray();
 
-    if (!coordinates[0].Equals2D(coordinates[^1]))
-    {
-        throw new ArgumentException(
-            "Poligonun ilk ve son noktası aynı olmalı.");
-    }
+        if (!coordinates[0].Equals2D(coordinates[^1]))
+        {
+            throw new ArgumentException(
+                "Poligonun ilk ve son noktası aynı olmalı.");
+        }
 
-    int distinctPointCount = coordinates
-        .Take(4)
-        .Select(coordinate =>
-            (coordinate.X, coordinate.Y))
-        .Distinct()
-        .Count();
+        int distinctPointCount = coordinates
+            .Take(4)
+            .Select(coordinate =>
+                (coordinate.X, coordinate.Y))
+            .Distinct()
+            .Count();
 
-    if (distinctPointCount != 4)
-    {
-        throw new ArgumentException(
-            "Poligonun seçilen 4 noktası birbirinden farklı olmalı.");
-    }
+        if (distinctPointCount != 4)
+        {
+            throw new ArgumentException(
+                "Poligonun seçilen 4 noktası birbirinden farklı olmalı.");
+        }
 
-    Polygon polygon =
-        _geometryFactory.CreatePolygon(coordinates);
+        Polygon polygon =
+            _geometryFactory.CreatePolygon(coordinates);
 
-    if (polygon.IsEmpty ||
-        !polygon.IsValid ||
-        polygon.Area == 0)
-    {
-        throw new ArgumentException(
-            "Poligon geometrisi geçersiz.");
-    }
+        if (polygon.IsEmpty ||
+            !polygon.IsValid ||
+            polygon.Area == 0)
+        {
+            throw new ArgumentException(
+                "Poligon geometrisi geçersiz.");
+        }
 
-      return polygon;
+        return polygon;
     }
 
     private static void ValidatePropertyType(

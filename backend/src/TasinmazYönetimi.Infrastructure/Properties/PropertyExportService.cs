@@ -144,8 +144,8 @@ public sealed class PropertyExportService : IPropertyExportService
         Style normalStyle = document.Styles["Normal"]
      ?? throw new InvalidOperationException("PDF normal stili oluşturulamadı.");
 
-normalStyle.Font.Name = "Arial";
-normalStyle.Font.Size = 9;
+        normalStyle.Font.Name = "Arial";
+        normalStyle.Font.Size = 9;
 
         Section section = document.AddSection();
 
