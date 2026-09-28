@@ -2,19 +2,12 @@ import {ChangeDetectorRef,Component,OnInit,inject,} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Auth } from '../../core/auth';
-import {
-  PagedResponse,
-  Property,
-  PropertyQuery,
-  PropertyRequest,
-  PropertyResponse,
-  PropertyType,
-} from '../../core/property';
-
+import {PagedResponse,Property,PropertyQuery,PropertyRequest,PropertyResponse,PropertyType,} from '../../core/property';
+import { PropertyMap } from '../../shared/property-map/property-map';
 
 @Component({
   selector: 'app-properties',
-  imports: [FormsModule],
+  imports: [FormsModule , PropertyMap],
   styleUrl: './properties.scss',
   templateUrl: './properties.html',
 })
@@ -23,6 +16,8 @@ export class Properties implements OnInit {
   private readonly auth = inject(Auth);
   private readonly changeDetector =inject(ChangeDetectorRef);
   protected readonly PropertyType = PropertyType;
+
+  protected mapCoordinates: number[][] = [];
 
   protected properties: PropertyResponse[] = [];
   protected loading = false;
@@ -91,11 +86,12 @@ export class Properties implements OnInit {
 
   protected startCreate(): void {
     this.editingId = null;
-    this.form = this.createEmptyForm();
-    this.coordinatesText = '';
-    this.errorMessage = '';
-    this.successMessage = '';
-    this.showForm = true;
+  this.form = this.createEmptyForm();
+  this.coordinatesText = '';
+  this.mapCoordinates = [];
+  this.errorMessage = '';
+  this.successMessage = '';
+  this.showForm = true;
   }
 
   protected startEdit(property: PropertyResponse): void {
@@ -113,7 +109,14 @@ export class Properties implements OnInit {
     };
 
     this.coordinatesText =
-      this.convertWktToCoordinates(property.geometryWkt);
+      this.convertWktToCoordinates(
+        property.geometryWkt,
+      );
+
+      this.mapCoordinates =
+        this.parseCoordinates(
+          this.coordinatesText,
+        );
 
     this.errorMessage = '';
     this.successMessage = '';
@@ -125,6 +128,7 @@ export class Properties implements OnInit {
     this.editingId = null;
     this.form = this.createEmptyForm();
     this.coordinatesText = '';
+    this.mapCoordinates = [];
   }
 
   protected saveProperty(): void {
@@ -134,7 +138,13 @@ export class Properties implements OnInit {
   this.changeDetector.detectChanges();
 
   let coordinates =
-    this.parseCoordinates(this.coordinatesText);
+    this.mapCoordinates.length > 0
+      ? this.mapCoordinates.map(
+          (coordinate) => [...coordinate],
+        )
+      : this.parseCoordinates(
+          this.coordinatesText,
+        );
 
   if (
     coordinates.length > 1 &&
@@ -182,6 +192,7 @@ export class Properties implements OnInit {
       this.editingId = null;
       this.form = this.createEmptyForm();
       this.coordinatesText = '';
+      this.mapCoordinates = [];
       this.loadProperties();
     },
     error: (error: HttpErrorResponse) => {
@@ -444,5 +455,17 @@ export class Properties implements OnInit {
     link.click();
 
     URL.revokeObjectURL(url);
+  }
+  protected onMapCoordinatesChange(
+    coordinates: number[][],
+  ): void {
+    this.mapCoordinates = coordinates;
+    
+    this.coordinatesText = coordinates
+      .map((coordinate) =>
+        `${coordinate[0]}, ${coordinate[1]}`,
+      )
+      .join('\n');
+    this.errorMessage = '';
   }
 }

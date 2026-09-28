@@ -12,7 +12,7 @@
         Toplam {{ totalCount }} kayıt
       </span>
 
-      @if (isUser) {
+      @if (isUser && !showForm) {
         <button
           type="button"
           (click)="startCreate()"
@@ -163,18 +163,34 @@
             Koordinatlar
           </label>
 
-          <textarea
-            id="coordinates"
-            name="coordinates"
-            rows="6"
-            required
-            [(ngModel)]="coordinatesText"
-            placeholder="32.85, 39.92&#10;32.86, 39.92&#10;32.86, 39.93&#10;32.85, 39.93"
-          ></textarea>
+          <div class="map-field">
+            <app-property-map
+              [coordinates]="mapCoordinates"
+              (coordinatesChange)="
+                onMapCoordinatesChange($event)"
+            />
+
+            @if (mapCoordinates.length === 4) {
+              <div class="coordinate-preview">
+                <strong>Seçilen Koordinatlar</strong>
+
+                @for (
+                  coordinate of mapCoordinates;
+                  track $index
+                ) {
+                  <span>
+                    {{ $index + 1 }}.
+                    {{ coordinate[0] }},
+                    {{ coordinate[1] }}
+                  </span>
+                }
+              </div>
+            }
+          </div>
 
           <small>
-            Her satıra “boylam, enlem” biçiminde bir
-            nokta yazın. En az dört nokta gereklidir.
+            Haritada tam dört farklı nokta seçin.
+            Dördüncü noktada poligon otomatik tamamlanır.
           </small>
         </div>
       </div>
@@ -203,7 +219,7 @@
         </button>
       </div>
     </form>
-  }
+  }@else {
 
   <form
     class="filter-panel"
@@ -430,4 +446,5 @@
       </button>
     </div>
   }
+} 
 </section>

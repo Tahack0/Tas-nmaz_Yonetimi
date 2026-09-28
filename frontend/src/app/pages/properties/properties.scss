@@ -128,4 +128,26 @@ table {
       opacity: 0.45;
     }
   }
+  .map-field {
+  grid-column: 1 / -1;
+}
+
+  .coordinate-preview {
+    display: grid;
+    gap: 6px;
+    margin-top: 12px;
+    border-radius: 8px;
+    padding: 14px;
+    background: #f8fafc;
+    color: #475569;
+
+    strong {
+      margin-bottom: 4px;
+      color: #172033;
+    }
+
+    span {
+      font-family: monospace;
+    }
+  }
 }

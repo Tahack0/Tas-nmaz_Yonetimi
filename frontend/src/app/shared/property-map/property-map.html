@@ -1,0 +1,46 @@
+<section class="map-card">
+  <div class="map-toolbar">
+    <div>
+      <strong>Taşınmaz Sınırı</strong>
+
+      <span>
+        {{ pointCount }} / 4 nokta
+      </span>
+    </div>
+
+    @if (!readonly) {
+      <div class="map-actions">
+        <button
+          type="button"
+          (click)="startDrawing()"
+        >
+          {{
+            drawing
+              ? 'Yeniden Başlat'
+              : 'Haritada Çiz'
+          }}
+        </button>
+
+        <button
+          type="button"
+          class="clear-button"
+          (click)="clearDrawing()"
+        >
+          Temizle
+        </button>
+      </div>
+    }
+  </div>
+
+  <div
+    #mapContainer
+    class="map-container"
+  ></div>
+
+  @if (drawing) {
+    <p class="map-information">
+      Harita üzerinde dört farklı noktaya tıklayın.
+      Dördüncü noktada poligon otomatik tamamlanır.
+    </p>
+  }
+</section>
