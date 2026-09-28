@@ -1,0 +1,330 @@
+<section class="audit-page">
+  <header class="page-header">
+    <div>
+      <h1>Audit Kayıtları</h1>
+      <p>
+        Sistemde gerçekleştirilen işlemleri inceleyin.
+      </p>
+    </div>
+
+    <div class="export-actions">
+      <button
+        type="button"
+        (click)="exportExcel()"
+        [disabled]="exporting"
+      >
+        Excel İndir
+      </button>
+
+      <button
+        type="button"
+        (click)="exportPdf()"
+        [disabled]="exporting"
+      >
+        PDF İndir
+      </button>
+    </div>
+  </header>
+
+  @if (errorMessage) {
+    <div class="error-message">
+      {{ errorMessage }}
+    </div>
+  }
+
+  <section class="filter-card">
+    <h2>Filtreler</h2>
+
+    <form
+      class="filter-grid"
+      (ngSubmit)="applyFilters()"
+    >
+      <label>
+        Kullanıcı ID
+
+        <input
+          type="text"
+          name="userId"
+          [(ngModel)]="query.userId"
+          placeholder="Kullanıcı GUID değeri"
+        />
+      </label>
+
+      <label>
+        Durum
+
+        <select
+          name="status"
+          [(ngModel)]="query.status"
+        >
+          <option [ngValue]="undefined">
+            Tümü
+          </option>
+
+          <option [ngValue]="LogStatus.Successful">
+            Başarılı
+          </option>
+
+          <option [ngValue]="LogStatus.Failed">
+            Başarısız
+          </option>
+        </select>
+      </label>
+
+      <label>
+        İşlem Türü
+
+        <select
+          name="operationType"
+          [(ngModel)]="query.operationType"
+        >
+          <option [ngValue]="undefined">
+            Tümü
+          </option>
+
+          <option [ngValue]="OperationType.Login">
+            Giriş
+          </option>
+
+          <option [ngValue]="OperationType.Logout">
+            Çıkış
+          </option>
+
+          <option
+            [ngValue]="OperationType.PropertyCreated"
+          >
+            Taşınmaz Eklendi
+          </option>
+
+          <option
+            [ngValue]="OperationType.PropertyUpdated"
+          >
+            Taşınmaz Güncellendi
+          </option>
+
+          <option
+            [ngValue]="OperationType.PropertyDeleted"
+          >
+            Taşınmaz Silindi
+          </option>
+
+          <option
+            [ngValue]="OperationType.PropertyImported"
+          >
+            Taşınmaz İçe Aktarıldı
+          </option>
+
+          <option
+            [ngValue]="OperationType.PropertyExported"
+          >
+            Taşınmaz Dışa Aktarıldı
+          </option>
+
+          <option
+            [ngValue]="OperationType.UserCreated"
+          >
+            Kullanıcı Oluşturuldu
+          </option>
+
+          <option
+            [ngValue]="OperationType.UserUpdated"
+          >
+            Kullanıcı Güncellendi
+          </option>
+
+          <option
+            [ngValue]="OperationType.UserDeleted"
+          >
+            Kullanıcı Silindi
+          </option>
+
+          <option
+            [ngValue]="
+              OperationType.SpatialAnalysisPerformed
+            "
+          >
+            Mekânsal Analiz Yapıldı
+          </option>
+        </select>
+      </label>
+
+      <label>
+        IP Adresi
+
+        <input
+          type="text"
+          name="ipAddress"
+          [(ngModel)]="query.ipAddress"
+          maxlength="45"
+          placeholder="Örnek: 127.0.0.1"
+        />
+      </label>
+
+      <label>
+        Açıklama
+
+        <input
+          type="text"
+          name="description"
+          [(ngModel)]="query.description"
+          maxlength="1000"
+          placeholder="Açıklamada ara"
+        />
+      </label>
+
+      <label>
+        Başlangıç Tarihi
+
+        <input
+          type="datetime-local"
+          name="fromLocal"
+          [(ngModel)]="fromLocal"
+        />
+      </label>
+
+      <label>
+        Bitiş Tarihi
+
+        <input
+          type="datetime-local"
+          name="toLocal"
+          [(ngModel)]="toLocal"
+        />
+      </label>
+
+      <div class="filter-actions">
+        <button
+          type="button"
+          class="secondary-button"
+          (click)="clearFilters()"
+          [disabled]="loading"
+        >
+          Temizle
+        </button>
+
+        <button
+          type="submit"
+          class="primary-button"
+          [disabled]="loading"
+        >
+          Filtrele
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <section class="table-card">
+    <div class="table-heading">
+      <h2>Kayıtlar</h2>
+
+      <span>
+        Toplam {{ totalCount }} kayıt
+      </span>
+    </div>
+
+    @if (loading) {
+      <div class="state-message">
+        Audit kayıtları yükleniyor...
+      </div>
+    } @else if (auditLogs.length === 0) {
+      <div class="state-message">
+        Audit kaydı bulunamadı.
+      </div>
+    } @else {
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Tarih</th>
+              <th>Kullanıcı ID</th>
+              <th>Durum</th>
+              <th>İşlem</th>
+              <th>IP Adresi</th>
+              <th>Açıklama</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (
+              auditLog of auditLogs;
+              track auditLog.id
+            ) {
+              <tr>
+                <td>
+                  {{
+                    auditLog.createdAt
+                      | date: 'dd.MM.yyyy HH:mm:ss'
+                  }}
+                </td>
+
+                <td class="user-id">
+                  {{ auditLog.userId ?? '-' }}
+                </td>
+
+                <td>
+                  <span
+                    class="status-badge"
+                    [class.failed-status]="
+                      auditLog.status ===
+                      LogStatus.Failed
+                    "
+                  >
+                    {{
+                      getStatusName(
+                        auditLog.status
+                      )
+                    }}
+                  </span>
+                </td>
+
+                <td>
+                  {{
+                    getOperationName(
+                      auditLog.operationType
+                    )
+                  }}
+                </td>
+
+                <td>{{ auditLog.ipAddress }}</td>
+
+                <td
+                  class="description"
+                  [title]="auditLog.description"
+                >
+                  {{ auditLog.description }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination">
+        <button
+          type="button"
+          (click)="previousPage()"
+          [disabled]="
+            query.page <= 1 || loading
+          "
+        >
+          Önceki
+        </button>
+
+        <span>
+          Sayfa {{ query.page }} /
+          {{ totalPages || 1 }}
+        </span>
+
+        <button
+          type="button"
+          (click)="nextPage()"
+          [disabled]="
+            query.page >= totalPages || loading
+          "
+        >
+          Sonraki
+        </button>
+      </div>
+    }
+  </section>
+</section>

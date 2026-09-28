@@ -1,0 +1,433 @@
+<section class="properties-page">
+  <div class="page-header">
+    <div>
+      <h1>Taşınmazlar</h1>
+      <p>
+        Kayıtlı taşınmazları görüntüleyin ve yönetin.
+      </p>
+    </div>
+
+    <div class="header-actions">
+      <span class="record-count">
+        Toplam {{ totalCount }} kayıt
+      </span>
+
+      @if (isUser) {
+        <button
+          type="button"
+          (click)="startCreate()"
+        >
+          Yeni Taşınmaz
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (successMessage) {
+    <div class="status-message success-message">
+      {{ successMessage }}
+    </div>
+  }
+
+  @if (errorMessage) {
+    <div class="status-message error-message">
+      {{ errorMessage }}
+    </div>
+  }
+
+  @if (showForm && isUser) {
+    <form
+      #propertyForm="ngForm"
+      class="property-form"
+      (ngSubmit)="saveProperty()"
+    >
+      <div class="form-header">
+        <h2>
+          {{
+            editingId
+              ? 'Taşınmazı Güncelle'
+              : 'Yeni Taşınmaz'
+          }}
+        </h2>
+
+        <button
+          type="button"
+          class="secondary-button"
+          (click)="cancelForm()"
+        >
+          Kapat
+        </button>
+      </div>
+
+      <div class="form-grid">
+        <div class="filter-field">
+          <label for="formCity">İl</label>
+          <input
+            id="formCity"
+            name="formCity"
+            type="text"
+            maxlength="100"
+            required
+            [(ngModel)]="form.city"
+          />
+        </div>
+
+        <div class="filter-field">
+          <label for="formDistrict">İlçe</label>
+          <input
+            id="formDistrict"
+            name="formDistrict"
+            type="text"
+            maxlength="100"
+            required
+            [(ngModel)]="form.district"
+          />
+        </div>
+
+        <div class="filter-field">
+          <label for="formNeighborhood">Mahalle</label>
+          <input
+            id="formNeighborhood"
+            name="formNeighborhood"
+            type="text"
+            maxlength="150"
+            required
+            [(ngModel)]="form.neighborhood"
+          />
+        </div>
+
+        <div class="filter-field">
+          <label for="formLotNumber">Ada No</label>
+          <input
+            id="formLotNumber"
+            name="formLotNumber"
+            type="text"
+            maxlength="50"
+            required
+            [(ngModel)]="form.lotNumber"
+          />
+        </div>
+
+        <div class="filter-field">
+          <label for="formParcelNumber">
+            Parsel No
+          </label>
+          <input
+            id="formParcelNumber"
+            name="formParcelNumber"
+            type="text"
+            maxlength="50"
+            required
+            [(ngModel)]="form.parcelNumber"
+          />
+        </div>
+
+        <div class="filter-field">
+          <label for="formPropertyType">
+            Taşınmaz Türü
+          </label>
+          <select
+            id="formPropertyType"
+            name="formPropertyType"
+            required
+            [(ngModel)]="form.propertyType"
+          >
+            <option [ngValue]="PropertyType.Land">
+              Arsa
+            </option>
+
+            <option [ngValue]="PropertyType.Building">
+              Bina
+            </option>
+
+            <option [ngValue]="PropertyType.Residence">
+              Konut
+            </option>
+          </select>
+        </div>
+
+        <div class="filter-field full-width">
+          <label for="formAddress">Adres</label>
+          <textarea
+            id="formAddress"
+            name="formAddress"
+            rows="3"
+            maxlength="500"
+            required
+            [(ngModel)]="form.address"
+          ></textarea>
+        </div>
+
+        <div class="filter-field full-width">
+          <label for="coordinates">
+            Koordinatlar
+          </label>
+
+          <textarea
+            id="coordinates"
+            name="coordinates"
+            rows="6"
+            required
+            [(ngModel)]="coordinatesText"
+            placeholder="32.85, 39.92&#10;32.86, 39.92&#10;32.86, 39.93&#10;32.85, 39.93"
+          ></textarea>
+
+          <small>
+            Her satıra “boylam, enlem” biçiminde bir
+            nokta yazın. En az dört nokta gereklidir.
+          </small>
+        </div>
+      </div>
+
+      <div class="filter-actions">
+        <button
+          type="submit"
+          [disabled]="propertyForm.invalid || saving"
+        >
+          {{
+            saving
+              ? 'Kaydediliyor...'
+              : editingId
+                ? 'Güncelle'
+                : 'Kaydet'
+          }}
+        </button>
+
+        <button
+          type="button"
+          class="secondary-button"
+          [disabled]="saving"
+          (click)="cancelForm()"
+        >
+          İptal
+        </button>
+      </div>
+    </form>
+  }
+
+  <form
+    class="filter-panel"
+    (ngSubmit)="applyFilters()"
+  >
+    <div class="filter-grid">
+      <div class="filter-field">
+        <label for="city">İl</label>
+        <input
+          id="city"
+          name="city"
+          type="text"
+          [(ngModel)]="query.city"
+          placeholder="İl"
+        />
+      </div>
+
+      <div class="filter-field">
+        <label for="district">İlçe</label>
+        <input
+          id="district"
+          name="district"
+          type="text"
+          [(ngModel)]="query.district"
+          placeholder="İlçe"
+        />
+      </div>
+
+      <div class="filter-field">
+        <label for="neighborhood">Mahalle</label>
+        <input
+          id="neighborhood"
+          name="neighborhood"
+          type="text"
+          [(ngModel)]="query.neighborhood"
+          placeholder="Mahalle"
+        />
+      </div>
+
+      <div class="filter-field">
+        <label for="parcelNumber">Parsel No</label>
+        <input
+          id="parcelNumber"
+          name="parcelNumber"
+          type="text"
+          [(ngModel)]="query.parcelNumber"
+          placeholder="Parsel no"
+        />
+      </div>
+
+      <div class="filter-field">
+        <label for="lotNumber">Ada No</label>
+        <input
+          id="lotNumber"
+          name="lotNumber"
+          type="text"
+          [(ngModel)]="query.lotNumber"
+          placeholder="Ada no"
+        />
+      </div>
+
+      <div class="filter-field">
+        <label for="propertyType">
+          Taşınmaz Türü
+        </label>
+
+        <select
+          id="propertyType"
+          name="propertyType"
+          [(ngModel)]="query.propertyType"
+        >
+          <option [ngValue]="undefined">Tümü</option>
+          <option [ngValue]="PropertyType.Land">
+            Arsa
+          </option>
+          <option [ngValue]="PropertyType.Building">
+            Bina
+          </option>
+          <option [ngValue]="PropertyType.Residence">
+            Konut
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <div class="filter-actions">
+      <button type="submit">Filtrele</button>
+
+      <button
+        type="button"
+        class="secondary-button"
+        (click)="clearFilters()"
+      >
+        Temizle
+      </button>
+    </div>
+  </form>
+    <div class="file-actions">
+  <button
+    type="button"
+    (click)="exportExcel()"
+    [disabled]="exporting"
+  >
+    Excel İndir
+  </button>
+
+  <button
+    type="button"
+    (click)="exportPdf()"
+    [disabled]="exporting"
+  >
+    PDF İndir
+  </button>
+
+  @if (isUser) {
+    <input
+      type="file"
+      accept=".xlsx"
+      (change)="selectExcelFile($event)"
+    />
+
+    <button
+      type="button"
+      (click)="importExcel()"
+      [disabled]="importing || !selectedExcelFile"
+    >
+      {{ importing ? 'Yükleniyor...' : 'Excel Yükle' }}
+    </button>
+  }
+</div>
+
+  @if (loading) {
+    <div class="status-message">
+      Taşınmazlar yükleniyor...
+    </div>
+  } @else if (properties.length === 0) {
+    <div class="status-message">
+      Filtrelere uygun taşınmaz bulunamadı.
+    </div>
+  } @else {
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>İl</th>
+            <th>İlçe</th>
+            <th>Mahalle</th>
+            <th>Ada</th>
+            <th>Parsel</th>
+            <th>Tür</th>
+            <th>Adres</th>
+
+            @if (isUser) {
+              <th>İşlemler</th>
+            }
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (property of properties; track property.id) {
+            <tr>
+              <td>{{ property.city }}</td>
+              <td>{{ property.district }}</td>
+              <td>{{ property.neighborhood }}</td>
+              <td>{{ property.lotNumber }}</td>
+              <td>{{ property.parcelNumber }}</td>
+
+              <td>
+                {{
+                  getPropertyTypeName(
+                    property.propertyType
+                  )
+                }}
+              </td>
+
+              <td>{{ property.address }}</td>
+
+              @if (isUser) {
+                <td>
+                  <div class="row-actions">
+                    <button
+                      type="button"
+                      class="edit-button"
+                      (click)="startEdit(property)"
+                    >
+                      Düzenle
+                    </button>
+
+                    <button
+                      type="button"
+                      class="delete-button"
+                      (click)="deleteProperty(property)"
+                    >
+                      Sil
+                    </button>
+                  </div>
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pagination">
+      <button
+        type="button"
+        (click)="previousPage()"
+        [disabled]="query.page <= 1"
+      >
+        Önceki
+      </button>
+
+      <span>
+        Sayfa {{ query.page }} / {{ totalPages }}
+      </span>
+
+      <button
+        type="button"
+        (click)="nextPage()"
+        [disabled]="query.page >= totalPages"
+      >
+        Sonraki
+      </button>
+    </div>
+  }
+</section>

@@ -1,0 +1,116 @@
+<div class="dashboard">
+  <aside class="sidebar">
+    <div class="logo">
+      <span>TY</span>
+
+      <div>
+        <strong>Taşınmaz</strong>
+        <small>Yönetim Sistemi</small>
+      </div>
+    </div>
+
+    <nav>
+  <a
+    routerLink="/dashboard"
+    routerLinkActive="active"
+  >
+    Ana Sayfa
+  </a>
+
+  <a
+    routerLink="/properties"
+    routerLinkActive="active"
+  >
+    Taşınmazlar
+  </a>
+
+  @if (!isAdmin) {
+    <a routerLink="/properties">
+      Taşınmaz Ekle
+    </a>
+
+    <a routerLink="/properties">
+      Excel İçe Aktar
+    </a>
+  }
+
+  @if (isAdmin) {
+    <a
+      routerLink="/users"
+      routerLinkActive="active"
+    >
+      Kullanıcı Yönetimi
+    </a>
+
+    <a
+      routerLink="/audit-logs"
+      routerLinkActive="active"
+    >
+      Audit Kayıtları
+    </a>
+  }
+</nav>
+
+    <button
+      class="logout"
+      type="button"
+      (click)="logout()"
+    >
+      Çıkış Yap
+    </button>
+  </aside>
+
+  <main class="content">
+    <header>
+      <div>
+        <h1>Kontrol Paneli</h1>
+        <p>Taşınmaz yönetim sistemine hoş geldiniz.</p>
+      </div>
+
+      <div class="user">
+        <strong>{{ email ?? 'Kullanıcı' }}</strong>
+        <span>{{ role ?? 'Rol bulunamadı' }}</span>
+      </div>
+    </header>
+
+    <section class="cards">
+      <article>
+        <span>Taşınmazlar</span>
+        <strong>Görüntüle</strong>
+        <p>Kayıtlı taşınmazları listeleyin ve inceleyin.</p>
+      </article>
+
+      @if (!isAdmin) {
+        <article>
+          <span>Yeni Kayıt</span>
+          <strong>Taşınmaz Ekle</strong>
+          <p>Yeni bir taşınmaz ve poligon bilgisi oluşturun.</p>
+        </article>
+
+        <article>
+          <span>Toplu İşlem</span>
+          <strong>Excel İçe Aktar</strong>
+          <p>Excel dosyasından toplu taşınmaz yükleyin.</p>
+        </article>
+      }
+
+     @if (isAdmin) {
+  <article
+  class="clickable-card"
+  routerLink="/audit-logs"
+  tabindex="0"
+>
+  <span>Sistem</span>
+  <strong>Audit Kayıtları</strong>
+  <p>Sistemde yapılan işlemleri görüntüleyin.</p>
+  </article>
+
+  <article>
+    <span>Sistem</span>
+    <strong>Audit Kayıtları</strong>
+    <p>Sistemde yapılan işlemleri görüntüleyin.</p>
+  </article>
+}
+    </section>
+  </main>
+</div>
