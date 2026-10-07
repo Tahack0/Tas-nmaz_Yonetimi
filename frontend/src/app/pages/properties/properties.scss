@@ -1,153 +1,245 @@
+/* Ana sayfayla ortak renkler ve sayfa düzeni */
 :host {
   display: block;
+  color: #172033;
+  background: #f4f7fb;
+  --blue: #2563eb;
+  --border: #e2e8f0;
+  --muted: #64748b;
 }
 
-.page {
+* { box-sizing: border-box; }
+
+.properties-page {
   min-height: 100vh;
-  box-sizing: border-box;
+  max-width: 1500px;
+  margin: auto;
   padding: 32px;
-  color: #0f172a;
-  background: #f1f5f9;
 }
 
-header {
-  margin-bottom: 24px;
-
-  a {
-    color: #2563eb;
-    text-decoration: none;
-    font-weight: 600;
-  }
-
-  h1 {
-    margin: 14px 0 5px;
-  }
-
-  p {
-    margin: 0;
-    color: #64748b;
-  }
-}
-
-.filters {
-  display: grid;
-  grid-template-columns:
-    repeat(auto-fit, minmax(145px, 1fr));
+/* Başlık ve ortak işlem satırları */
+.page-header,
+.form-header,
+.header-actions,
+.filter-actions,
+.file-actions,
+.row-actions,
+.pagination {
+  display: flex;
+  align-items: center;
   gap: 12px;
-  margin-bottom: 22px;
-  padding: 18px;
+  flex-wrap: wrap;
+}
+
+.page-header,
+.form-header {
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+h1 { margin: 0 0 8px; font-size: 30px; letter-spacing: -0.04em; }
+h2 { margin: 0; font-size: 20px; }
+p { margin: 0; color: var(--muted); line-height: 1.6; }
+
+.record-count {
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #e8eef8;
+  color: #475569;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+/* Tüm butonlar tek temel stil kullanır. */
+button {
+  min-height: 40px;
+  padding: 10px 16px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: var(--blue);
+  color: white;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover:not(:disabled) { background: #1d4ed8; }
+  &:disabled { opacity: 0.45; cursor: not-allowed; }
+}
+
+.secondary-button,
+.edit-button,
+.file-actions button {
+  border-color: var(--border);
+  background: white;
+  color: #334155;
+
+  &:hover:not(:disabled) { background: #eff6ff; }
+}
+
+.delete-button {
+  background: #fff1f2;
+  color: #be123c;
+
+  &:hover:not(:disabled) { background: #ffe4e6; }
+}
+
+button:focus-visible {
+  outline: 3px solid #93c5fd;
+  outline-offset: 3px;
+}
+
+/* Liste ve harita arasında geçiş */
+.view-switch {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--border);
   border-radius: 12px;
-  background: #ffffff;
-
-  input,
-  select,
-  button {
-    min-height: 42px;
-    box-sizing: border-box;
-    padding: 9px 11px;
-    border: 1px solid #cbd5e1;
-    border-radius: 7px;
-    font: inherit;
-  }
+  background: white;
 
   button {
-    border-color: #2563eb;
-    color: #ffffff;
-    background: #2563eb;
-    cursor: pointer;
-  }
+    background: transparent;
+    color: var(--muted);
 
-  .secondary {
-    border-color: #cbd5e1;
-    color: #334155;
-    background: #ffffff;
+    &:hover { background: #eff6ff; }
+    &.active { background: var(--blue); color: white; }
   }
 }
 
-.table-wrapper {
+/* Filtre, kayıt formu ve dosya işlemleri ortak kart görünümündedir. */
+.filter-panel,
+.property-form,
+.file-actions {
+  margin-bottom: 20px;
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: white;
+}
+
+.filter-grid,
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.filter-field {
+  display: grid;
+  align-content: start;
+  gap: 7px;
+  min-width: 0;
+
+  label { font-size: 12px; font-weight: 600; color: #475569; }
+  small { color: var(--muted); line-height: 1.6; }
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+  background: white;
+  color: #172033;
+  font: inherit;
+  font-size: 14px;
+
+  &:focus {
+    outline: 2px solid #bfdbfe;
+    border-color: var(--blue);
+  }
+}
+
+textarea { resize: vertical; }
+.full-width { grid-column: 1 / -1; }
+.filter-actions { margin-top: 20px; }
+.file-actions input[type='file'] { flex: 1; min-width: 220px; }
+
+.coordinate-preview {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 14px;
+  border-radius: 9px;
+  background: #f8fafc;
+
+  span { overflow-wrap: anywhere; font-family: monospace; }
+}
+
+/* Tablo yalnızca kendi alanında yatay kaydırılır. */
+.table-container {
   overflow-x: auto;
-  border-radius: 12px;
-  background: #ffffff;
-  box-shadow: 0 5px 18px rgba(15, 23, 42, 0.07);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: white;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
+  font-size: 13px;
 
   th,
   td {
-    padding: 13px 14px;
-    border-bottom: 1px solid #e2e8f0;
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
     text-align: left;
     white-space: nowrap;
   }
 
-  th {
-    color: #475569;
-    background: #f8fafc;
-    font-size: 13px;
+  th { background: #f8fafc; color: var(--muted); font-size: 12px; }
+  tbody tr:hover { background: #f8fafc; }
+  tbody tr:last-child td { border-bottom: 0; }
+
+  /* Uzun adresler tabloyu gereksiz genişletmez. */
+  td:nth-child(7) {
+    min-width: 200px;
+    max-width: 320px;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
-
-  tbody tr:hover {
-    background: #f8fafc;
-  }
 }
 
-.state,
-.error {
-  padding: 20px;
-  border-radius: 10px;
-  text-align: center;
-  background: #ffffff;
-}
-
-.error {
-  margin-bottom: 18px;
-  color: #991b1b;
-  background: #fee2e2;
-}
+.row-actions { flex-wrap: nowrap; gap: 8px; }
+.row-actions button { min-height: 34px; padding: 7px 12px; }
 
 .pagination {
-  display: flex;
-  align-items: center;
   justify-content: center;
-  gap: 18px;
-  margin-top: 20px;
-
-  button {
-    padding: 9px 16px;
-    border: 0;
-    border-radius: 7px;
-    color: #ffffff;
-    background: #2563eb;
-    cursor: pointer;
-
-    &:disabled {
-      cursor: not-allowed;
-      opacity: 0.45;
-    }
-  }
-  .map-field {
-  grid-column: 1 / -1;
+  margin-top: 22px;
+  color: var(--muted);
+  font-size: 13px;
 }
 
-  .coordinate-preview {
-    display: grid;
-    gap: 6px;
-    margin-top: 12px;
-    border-radius: 8px;
-    padding: 14px;
-    background: #f8fafc;
-    color: #475569;
+/* Yükleme, boş liste ve işlem mesajları */
+.status-message {
+  margin-bottom: 18px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: white;
+}
 
-    strong {
-      margin-bottom: 4px;
-      color: #172033;
-    }
+.success-message { background: #ecfdf5; border-color: #a7f3d0; color: #047857; }
+.error-message { background: #fff1f2; border-color: #fecdd3; color: #be123c; }
 
-    span {
-      font-family: monospace;
-    }
-  }
+/* Dar tarayıcı ekranlarına uyum */
+@media (max-width: 900px) {
+  .filter-grid,
+  .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 600px) {
+  .properties-page { padding: 18px; }
+  .page-header { align-items: flex-start; flex-direction: column; }
+  .filter-grid,
+  .form-grid { grid-template-columns: 1fr; }
+  .filter-panel,
+  .property-form,
+  .file-actions { padding: 16px; }
+  .file-actions input[type='file'] { min-width: 0; flex-basis: 100%; }
 }

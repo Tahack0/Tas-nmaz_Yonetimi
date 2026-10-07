@@ -1,0 +1,139 @@
+<div class="map-page">
+  <!-- Sayfa başlığı ve geri dönüş bağlantısı -->
+   @if (!embedded) {
+    <header class="page-header">
+      <div>
+        <h1>Taşınmaz Haritası</h1>
+        <p>
+          Kayıtlı taşınmazları harita üzerinde
+          görüntüleyebilirsiniz.
+        </p>
+      </div>
+
+      <a
+        class="back-button"
+        routerLink="/dashboard"
+      >
+        Kontrol Paneline Dön
+      </a>
+    </header>
+  }
+
+  
+
+  <!-- Servis veya geometri hatalarını gösterir -->
+  @if (errorMessage) {
+    <div class="message error-message">
+      {{ errorMessage }}
+    </div>
+  }
+
+  <section class="map-container">
+    <!-- OpenLayers haritasının oluşturulacağı alan -->
+    <div
+      #mapElement
+      class="map"
+    ></div>
+
+    <!-- Taşınmaz vektör katmanının kontrollerini gösterir -->
+    <div class="layer-controls">
+      <label class="visibility-control">
+        <input
+          type="checkbox"
+          [checked]="layerVisible"
+          (change)="togglePropertyLayer($event)"
+        />
+
+        Taşınmaz katmanı
+      </label>
+
+      <label for="layerOpacity">
+        Saydamlık: {{ layerOpacity }}%
+      </label>
+
+      <input
+        id="layerOpacity"
+        type="range"
+        min="0"
+        max="100"
+        step="5"
+        [value]="layerOpacity"
+        [disabled]="!layerVisible"
+        (input)="changeLayerOpacity($event)"
+      />
+    </div>
+    <!-- Harita yüklenirken gösterilen bilgi alanı -->
+    @if (loading) {
+      <div class="loading-panel">
+        Taşınmazlar yükleniyor...
+      </div>
+    }
+
+    <!-- Haritadaki taşınmaz sayısını gösterir -->
+    @if (!loading && !errorMessage) {
+      <div class="property-count">
+        {{ propertyCount }} taşınmaz gösteriliyor
+      </div>
+    }
+
+    <!-- Poligona tıklandığında taşınmaz detaylarını gösterir -->
+    @if (selectedProperty) {
+      <aside class="property-details">
+        <div class="details-header">
+          <h2>Taşınmaz Bilgileri</h2>
+
+          <button
+            type="button"
+            aria-label="Detayları kapat"
+            (click)="closeDetails()"
+          >
+            ×
+          </button>
+        </div>
+
+        <dl>
+          <div>
+            <dt>İl</dt>
+            <dd>{{ selectedProperty.city }}</dd>
+          </div>
+
+          <div>
+            <dt>İlçe</dt>
+            <dd>{{ selectedProperty.district }}</dd>
+          </div>
+
+          <div>
+            <dt>Mahalle</dt>
+            <dd>{{ selectedProperty.neighborhood }}</dd>
+          </div>
+
+          <div>
+            <dt>Ada No</dt>
+            <dd>{{ selectedProperty.lotNumber }}</dd>
+          </div>
+
+          <div>
+            <dt>Parsel No</dt>
+            <dd>{{ selectedProperty.parcelNumber }}</dd>
+          </div>
+
+          <div>
+            <dt>Taşınmaz Türü</dt>
+            <dd>
+              {{
+                getPropertyTypeName(
+                  selectedProperty.propertyType
+                )
+              }}
+            </dd>
+          </div>
+
+          <div class="full-width">
+            <dt>Adres</dt>
+            <dd>{{ selectedProperty.address }}</dd>
+          </div>
+        </dl>
+      </aside>
+    }
+  </section>
+</div>

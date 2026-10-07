@@ -12,3 +12,17 @@ body {
     Arial,
     sans-serif;
 }
+
+/* Ölçek çubuğunu sağ altta, kayıt sayısının üstünde gösterir. */
+.ol-scale-line {
+  right: 18px !important;
+  bottom: 65px !important;
+  left: auto !important;
+}
+
+/* Bar biçimindeki ölçeği sağ altta konumlandırır. */
+.ol-scale-bar {
+  right: 18px !important;
+  bottom: 65px !important;
+  left: auto !important;
+}

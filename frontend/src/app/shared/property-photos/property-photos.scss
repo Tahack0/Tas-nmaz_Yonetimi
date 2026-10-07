@@ -1,0 +1,52 @@
+:host { display: block; }
+.photos-panel { 
+    margin: 20px 0;
+    padding: 22px;
+    border: 1px solid #dbe3ef; border-radius: 14px;
+    background: #fff; color: #172033; }
+header, .upload-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px; }
+
+h2 { margin: 0; }
+
+p, figcaption { color: #64748b; }
+
+button {
+    padding: 10px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px; background: #eff6ff; color: #1d4ed8;
+    cursor: pointer; 
+}
+
+button:disabled {
+    opacity: .5;
+    cursor: not-allowed; 
+}
+.photo-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px; 
+    }
+.photo-list button { max-width: 100%; overflow-wrap: anywhere; }
+figure { margin: 18px 0 0; }
+
+img { 
+    display: block;
+    width: 100%;
+    max-height: 460px; 
+    object-fit: contain; 
+    border-radius: 10px; 
+    background: #f8fafc; 
+}
+
+figcaption { 
+    margin-top: 8px; 
+    overflow-wrap: anywhere;
+}
+.error { color: #991b1b; }
+.success { color: #166534; }

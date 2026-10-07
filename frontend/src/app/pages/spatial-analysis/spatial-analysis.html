@@ -1,0 +1,55 @@
+<section class="analysis-page">
+  <header>
+    <div>
+      <h1>Alan Analizi</h1>
+      <p>A, B ve C geometrilerinin kesişim ve birleşim alanlarını hesaplayın.</p>
+    </div>
+    <a routerLink="/dashboard">Kontrol Paneline Dön</a>
+  </header>
+
+  <!-- İstek sırasında çizim ve işlem butonlarını kilitler. -->
+  <fieldset [disabled]="busy()">
+    <div class="toolbar">
+      <button type="button" (click)="startDrawing()">Manuel Çizim</button>
+      <button type="button" (click)="loadSaved()">Auto-Select</button>
+      <button type="button" (click)="save()">A/B/C Kaydet</button>
+      <button type="button" class="secondary" (click)="clear()">Temizle</button>
+    </div>
+
+    <div class="toolbar">
+      <button type="button" [disabled]="!ready()" (click)="analyze('ab')">A ∩ B</button>
+      <button type="button" [disabled]="!ready()" (click)="analyze('ba')">B ∩ A</button>
+      <button type="button" [disabled]="!ready()" (click)="analyze('unionAB')">A ∪ B → D</button>
+      <button type="button" [disabled]="!ready()" (click)="analyze('unionABC')">A ∪ B ∪ C → E</button>
+    </div>
+  </fieldset>
+
+  @if (busy()) {
+    <p class="message">İşlem yapılıyor...</p>
+  }
+  @if (message()) {
+    <p class="message" role="status">{{ message() }}</p>
+  }
+
+  <!-- İstek sırasında haritada yeni çizim yapılmasını önler. -->
+  <div [class.busy]="busy()">
+    <app-spatial-analysis-map
+      (geometriesChange)="onGeometriesChange($event)"
+    />
+  </div>
+
+  <div class="areas">
+    @for (geometry of geometries(); track geometry.label) {
+      <span>
+        {{ geometry.label === 1 ? 'A' : geometry.label === 2 ? 'B' : 'C' }}:
+        {{ geometry.areaSquareMeters | number:'1.2-2' }} m²
+      </span>
+    }
+
+    @if (result(); as analysis) {
+      <strong>
+        Sonuç: {{ analysis.areaSquareMeters | number:'1.2-2' }} m²
+      </strong>
+    }
+  </div>
+</section>

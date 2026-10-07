@@ -12,6 +12,12 @@ export interface LoginResponse {
   expiresAtUtc: string;
 }
 
+export interface RegisterRequest {
+  name: string;
+  email: string;
+  password: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -115,6 +121,13 @@ export class Auth {
         return null;
     }
     }
+    register(request: RegisterRequest): Observable<{ id: string }> {
+    return this.http.post<{ id: string }>(
+      `${this.apiUrl}/register`,
+      request,
+    );
+  }
+
 
   logout(): void {
     localStorage.removeItem(this.tokenKey);

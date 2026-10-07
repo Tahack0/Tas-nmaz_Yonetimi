@@ -1,34 +1,15 @@
-import {
-  AfterViewInit,
-  Component,
-  ElementRef,
-  EventEmitter,
-  Input,
-  OnChanges,
-  OnDestroy,
-  Output,
-  SimpleChanges,
-  ViewChild,
-} from '@angular/core';
+import {AfterViewInit,Component,ElementRef,EventEmitter,Input,OnChanges,OnDestroy,Output,SimpleChanges,ViewChild,} from '@angular/core';
 import Feature from 'ol/Feature';
 import Map from 'ol/Map';
 import View from 'ol/View';
 import Draw from 'ol/interaction/Draw';
 import TileLayer from 'ol/layer/Tile';
 import VectorLayer from 'ol/layer/Vector';
-import {
-  Circle as CircleStyle,
-  Fill,
-  Stroke,
-  Style,
-} from 'ol/style';
+import {Fill,Stroke,Style,} from 'ol/style';
 import OSM from 'ol/source/OSM';
 import VectorSource from 'ol/source/Vector';
 import Polygon from 'ol/geom/Polygon';
-import {
-  fromLonLat,
-  toLonLat,
-} from 'ol/proj';
+import {fromLonLat,toLonLat,} from 'ol/proj';
 
 @Component({
   selector: 'app-property-map',
@@ -69,7 +50,7 @@ export class PropertyMap
           width: 3,
         }),
         fill: new Fill({
-          color: 'rgba(37, 99, 235, 0.20)',
+          color: '#2563eb33',
         }),
       }),
     });
@@ -118,6 +99,7 @@ export class PropertyMap
     this.vectorSource.clear();
 
     this.coordinates = [];
+    this.coordinatesChange.emit([]);
     this.pointCount = 0;
     this.drawing = true;
 
@@ -126,26 +108,6 @@ export class PropertyMap
       type: 'Polygon',
       minPoints: 4,
       maxPoints: 4,
-      style: new Style({
-        stroke: new Stroke({
-          color: '#f97316',
-          width: 3,
-          lineDash: [8, 8],
-        }),
-        fill: new Fill({
-          color: 'rgba(249, 115, 22, 0.15)',
-        }),
-        image: new CircleStyle({
-          radius: 6,
-          fill: new Fill({
-            color: '#f97316',
-          }),
-          stroke: new Stroke({
-            color: '#ffffff',
-            width: 2,
-          }),
-        }),
-      }),
     });
 
     this.draw.on('drawstart', (event) => {

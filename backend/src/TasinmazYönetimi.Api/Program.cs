@@ -15,6 +15,12 @@ using TasinmazYönetimi.Infrastructure.Auditing;
 using Microsoft.AspNetCore.WebSockets;
 using TasinmazYönetimi.Application.Users;
 using TasinmazYönetimi.Infrastructure.Users;
+using TasinmazYönetimi.Application.SpatialAnalyses;
+using TasinmazYönetimi.Infrastructure.SpatialAnalyses;
+using TasinmazYönetimi.Application.Locations;
+using TasinmazYönetimi.Infrastructure.Locations;
+using TasinmazYönetimi.Application.PropertyMedia;
+using TasinmazYönetimi.Infrastructure.PropertyMedia;
 
 
 
@@ -36,7 +42,15 @@ builder.Services.AddScoped<IPropertyExportService, PropertyExportService>();
 builder.Services.AddScoped<IAuditLogExportService, AuditLogExportService>();
 builder.Services.AddScoped<IPropertyImportService, PropertyImportService>();
 builder.Services.AddScoped<IUserManagementService, UserManagementService>();
-
+builder.Services.AddScoped<ISpatialAnalysisService, SpatialAnalysisService>();
+builder.Services.AddScoped<ILocationService, LocationService>();
+builder.Services.Configure<PropertyMediaOptions>(options =>
+{
+    string directory = builder.Configuration["PropertyMedia:Directory"]
+        ?? Path.Combine("Storage", "PropertyPhotos");
+    options.RootDirectory = Path.GetFullPath(directory, builder.Environment.ContentRootPath);
+});
+builder.Services.AddScoped<IPropertyMediaService, PropertyMediaService>();
 
 string jwtKey = builder.Configuration["Jwt:Key"]
     ?? throw new InvalidOperationException("Jwt:Key Yapilandirilmamis.");
@@ -132,4 +146,20 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+//boş konum tablolarını doldurmak için
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+
+    var db = scope.ServiceProvider
+        .GetRequiredService<ApplicationDbContext>();
+
+    string filePath = Path.Combine(
+        app.Environment.ContentRootPath,
+        "Data",
+        "Locations",
+        "turkiye-locations.json");
+
+    await LocationDataSeeder.SeedAsync(db, filePath);
+}
 app.Run();

@@ -1,116 +1,96 @@
 <div class="dashboard">
+  <!-- Menü bağlantıları role göre oluşturulur. -->
   <aside class="sidebar">
-    <div class="logo">
+    <a class="logo" routerLink="/dashboard">
       <span>TY</span>
-
-      <div>
-        <strong>Taşınmaz</strong>
-        <small>Yönetim Sistemi</small>
-      </div>
-    </div>
-
-    <nav>
-  <a
-    routerLink="/dashboard"
-    routerLinkActive="active"
-  >
-    Ana Sayfa
-  </a>
-
-  <a
-    routerLink="/properties"
-    routerLinkActive="active"
-  >
-    Taşınmazlar
-  </a>
-
-  @if (!isAdmin) {
-    <a routerLink="/properties">
-      Taşınmaz Ekle
+      <div><strong>Taşınmaz</strong><small>Yönetim Sistemi</small></div>
     </a>
 
-    <a routerLink="/properties">
-      Excel İçe Aktar
-    </a>
-  }
+    <nav aria-label="Ana menü">
+      <a routerLink="/dashboard" routerLinkActive="active"
+         [routerLinkActiveOptions]="{ exact: true }">Ana Sayfa</a>
+      <a routerLink="/spatial-analysis">Alan Analizi</a>
+      @for (link of links; track link.path) {
+        <a [routerLink]="link.path" routerLinkActive="active">{{ link.label }}</a>
+      }
+    </nav>
 
-  @if (isAdmin) {
-    <a
-      routerLink="/users"
-      routerLinkActive="active"
-    >
-      Kullanıcı Yönetimi
-    </a>
-
-    <a
-      routerLink="/audit-logs"
-      routerLinkActive="active"
-    >
-      Audit Kayıtları
-    </a>
-  }
-</nav>
-
-    <button
-      class="logout"
-      type="button"
-      (click)="logout()"
-    >
-      Çıkış Yap
-    </button>
+    <button class="logout" type="button" (click)="logout()">Çıkış Yap</button>
   </aside>
 
-  <main class="content">
+  <main>
     <header>
       <div>
+        <span class="eyebrow">GENEL BAKIŞ</span>
         <h1>Kontrol Paneli</h1>
-        <p>Taşınmaz yönetim sistemine hoş geldiniz.</p>
+        <p>{{ isAdmin ? 'Tüm taşınmazların genel özeti.' : 'Kendi taşınmazlarınızın genel özeti.' }}</p>
       </div>
-
-      <div class="user">
+      <div class="account">
         <strong>{{ email ?? 'Kullanıcı' }}</strong>
-        <span>{{ role ?? 'Rol bulunamadı' }}</span>
+        <small>{{ isAdmin ? 'Yönetici' : 'Kullanıcı' }}</small>
       </div>
     </header>
 
-    <section class="cards">
-      <article>
-        <span>Taşınmazlar</span>
-        <strong>Görüntüle</strong>
-        <p>Kayıtlı taşınmazları listeleyin ve inceleyin.</p>
-      </article>
+    <section class="welcome">
+      <div>
+        <h2>Taşınmazlarınız tek bir yerde.</h2>
+        <p>Kayıtları inceleyin, haritada görüntüleyin ve işlemlerinize kolayca ulaşın.</p>
+      </div>
+      <a class="primary-button" routerLink="/properties">Taşınmazlara Git →</a>
+    </section>
 
-      @if (!isAdmin) {
-        <article>
-          <span>Yeni Kayıt</span>
-          <strong>Taşınmaz Ekle</strong>
-          <p>Yeni bir taşınmaz ve poligon bilgisi oluşturun.</p>
-        </article>
+    @if (error()) {
+      <div class="error" role="alert">
+        {{ error() }}
+        <button type="button" (click)="loadSummary()">Tekrar Dene</button>
+      </div>
+    }
 
-        <article>
-          <span>Toplu İşlem</span>
-          <strong>Excel İçe Aktar</strong>
-          <p>Excel dosyasından toplu taşınmaz yükleyin.</p>
+    <!-- Aynı kart yapısı dört istatistik için tekrar kullanılır. -->
+    <section class="stats" aria-label="Taşınmaz özeti" [attr.aria-busy]="loading()">
+      @for (stat of stats(); track stat.label) {
+        <article class="panel">
+          <span>{{ stat.label }}</span>
+          <strong>{{ loading() || error() ? '—' : stat.count }}</strong>
         </article>
       }
-
-     @if (isAdmin) {
-  <article
-  class="clickable-card"
-  routerLink="/audit-logs"
-  tabindex="0"
->
-  <span>Sistem</span>
-  <strong>Audit Kayıtları</strong>
-  <p>Sistemde yapılan işlemleri görüntüleyin.</p>
-  </article>
-
-  <article>
-    <span>Sistem</span>
-    <strong>Audit Kayıtları</strong>
-    <p>Sistemde yapılan işlemleri görüntüleyin.</p>
-  </article>
-}
     </section>
+
+    <div class="sections">
+      <section class="panel">
+        <div class="section-heading">
+          <h2>Son Eklenen Taşınmazlar</h2>
+          <a routerLink="/properties">Tümünü Gör →</a>
+        </div>
+
+        @if (loading()) {
+          <p class="empty" role="status">Kayıtlar yükleniyor...</p>
+        } @else if (error()) {
+          <p class="empty">Kayıtlar görüntülenemiyor.</p>
+        } @else {
+          @for (property of recent(); track property.id) {
+            <div class="property-row">
+              <div>
+                <strong>{{ property.city }} / {{ property.district }}</strong>
+                <small>{{ property.neighborhood }} · Ada {{ property.lotNumber }} / Parsel {{ property.parcelNumber }}</small>
+              </div>
+              <small>{{ property.createdAt | date:'dd.MM.yyyy' }}</small>
+            </div>
+          } @empty {
+            <p class="empty">Henüz taşınmaz kaydı bulunmuyor.</p>
+          }
+        }
+      </section>
+
+      <section class="panel">
+        <h2>Hızlı Erişim</h2>
+        @for (link of links; track link.path) {
+          <a class="shortcut" [routerLink]="link.path">
+            <div><strong>{{ link.label }}</strong><small>{{ link.description }}</small></div>
+            <span aria-hidden="true">↗</span>
+          </a>
+        }
+      </section>
+    </div>
   </main>
 </div>

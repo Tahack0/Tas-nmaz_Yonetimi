@@ -1,0 +1,30 @@
+<section class="photos-panel" aria-label="Taşınmaz fotoğrafları">
+  <header>
+    <div><h2>Fotoğraflar</h2><p>Fotoğraf eklemek isteğe bağlıdır.</p></div>
+    <button type="button" [disabled]="uploading()" (click)="closed.emit()">Kapat</button>
+  </header>
+  @if (error()) { <p role="alert" class="error">{{ error() }}</p> }
+  @if (success()) { <p role="status" class="success">{{ success() }}</p> }
+  <!-- Yükleme alanını yalnız User görür. -->
+  @if (canUpload) {
+    <div class="upload-row">
+      <label for="propertyPhoto">JPEG/PNG fotoğraf · En fazla 100 MB</label>
+      <input #photoInput id="propertyPhoto" type="file" accept=".jpg,.jpeg,.png"
+        [disabled]="uploading()" (change)="selectFile($event)" />
+      <button type="button" [disabled]="uploading() || !fileName()" (click)="upload(photoInput)">
+        {{ uploading() ? 'Yükleniyor...' : 'Fotoğraf Yükle' }}
+      </button>
+    </div>
+  }
+  @if (loading()) { <p role="status">Fotoğraflar yükleniyor...</p> }
+  @else if (!photos().length) { <p>Bu taşınmaza henüz fotoğraf eklenmemiş.</p> }
+  <div class="photo-list">
+    @for (photo of photos(); track photo.id) {
+      <button type="button" (click)="showPhoto(photo)">{{ photo.fileName }}</button>
+    }
+  </div>
+  @if (imageLoading()) { <p role="status">Fotoğraf açılıyor...</p> }
+  @if (imageUrl()) {
+    <figure><img [src]="imageUrl()" [alt]="imageName()" /><figcaption>{{ imageName() }}</figcaption></figure>
+  }
+</section>

@@ -1,0 +1,51 @@
+<main class="register-page">
+  <section class="register-card">
+    <span class="logo">TY</span>
+    <h1>Hesap Oluştur</h1>
+    <p>Taşınmaz Yönetim Sistemi</p>
+
+    @if (completed()) {
+      <div class="success" role="status">
+        Hesabınız oluşturuldu. Artık giriş yapabilirsiniz.
+      </div>
+      <a class="login-link" routerLink="/login">Giriş Yap →</a>
+    } @else {
+      <form #registerForm="ngForm" (ngSubmit)="register()">
+        <label for="name">Ad Soyad</label>
+        <input id="name" name="name" autocomplete="name"
+               required minlength="2" maxlength="100"
+               [(ngModel)]="form.name" />
+
+        <label for="email">E-posta</label>
+        <input id="email" name="email" type="email" autocomplete="email"
+               required email maxlength="255"
+               [(ngModel)]="form.email" />
+
+        <label for="password">Parola</label>
+        <input id="password" name="password" type="password"
+               autocomplete="new-password" required minlength="12"
+               [(ngModel)]="form.password" />
+        <small>En az 12 karakter kullanın.</small>
+
+        <label for="passwordAgain">Parola Tekrarı</label>
+        <input id="passwordAgain" name="passwordAgain" type="password"
+               autocomplete="new-password" required
+               [(ngModel)]="passwordAgain" />
+
+        @if (error()) {
+          <div class="error" role="alert">{{ error() }}</div>
+        }
+
+        <button type="submit"
+                [disabled]="registerForm.invalid || saving()">
+          {{ saving() ? 'Hesap oluşturuluyor...' : 'Hesap Oluştur' }}
+        </button>
+      </form>
+
+      <p class="footer">
+        Zaten hesabınız var mı?
+        <a routerLink="/login">Giriş Yap</a>
+      </p>
+    }
+  </section>
+</main>

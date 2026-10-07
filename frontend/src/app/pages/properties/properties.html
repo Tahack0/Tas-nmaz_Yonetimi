@@ -6,12 +6,28 @@
         Kayıtlı taşınmazları görüntüleyin ve yönetin.
       </p>
     </div>
-
     <div class="header-actions">
+      @if (!showForm) {
+    <div class="view-switch">
+      <button
+        type="button"
+        [class.active]="viewMode === 'list'"
+        (click)="changeView('list')"
+      >
+        Liste
+      </button>
+      <button
+        type="button"
+        [class.active]="viewMode === 'map'"
+        (click)="changeView('map')"
+      >
+        Harita
+      </button>
+    </div>
+  }
       <span class="record-count">
         Toplam {{ totalCount }} kayıt
       </span>
-
       @if (isUser && !showForm) {
         <button
           type="button"
@@ -22,22 +38,28 @@
       }
     </div>
   </div>
-
   @if (successMessage) {
     <div class="status-message success-message">
       {{ successMessage }}
     </div>
   }
-
   @if (errorMessage) {
     <div class="status-message error-message">
       {{ errorMessage }}
     </div>
   }
-
-  @if (showForm && isUser) {
+  <!-- Kayıtlı taşınmazın fotoğraflarını yetkiye göre gösterir. -->
+  @if (photoPropertyId && !showForm) {
+    <app-property-photos [propertyId]="photoPropertyId" [canUpload]="isUser"
+      (closed)="photoPropertyId = null" />
+  }
+  @if (!showForm && viewMode === 'map') {
+    <app-property-map-overview
+      [embedded]="true"
+    />
+  } @else if (showForm && isUser) {
     <form
-      #propertyForm="ngForm"
+      [formGroup]="propertyForm"
       class="property-form"
       (ngSubmit)="saveProperty()"
     >
@@ -49,7 +71,6 @@
               : 'Yeni Taşınmaz'
           }}
         </h2>
-
         <button
           type="button"
           class="secondary-button"
@@ -58,44 +79,62 @@
           Kapat
         </button>
       </div>
-
       <div class="form-grid">
-        <div class="filter-field">
-          <label for="formCity">İl</label>
-          <input
-            id="formCity"
-            name="formCity"
-            type="text"
-            maxlength="100"
-            required
-            [(ngModel)]="form.city"
-          />
-        </div>
-
-        <div class="filter-field">
-          <label for="formDistrict">İlçe</label>
-          <input
-            id="formDistrict"
-            name="formDistrict"
-            type="text"
-            maxlength="100"
-            required
-            [(ngModel)]="form.district"
-          />
-        </div>
-
-        <div class="filter-field">
-          <label for="formNeighborhood">Mahalle</label>
-          <input
-            id="formNeighborhood"
-            name="formNeighborhood"
-            type="text"
-            maxlength="150"
-            required
-            [(ngModel)]="form.neighborhood"
-          />
-        </div>
-
+      <!-- İl seçimi -->
+      <div class="filter-field">
+        <label for="formCity">İl</label>
+        <select
+          id="formCity"
+          formControlName="city"
+          (change)="loadDistricts()"
+        >
+          <option value="" disabled>
+            {{ citiesLoading ? 'İller yükleniyor...' : 'İl seçin' }}
+          </option>
+          @for (city of cities; track city.id) {
+            <option [value]="city.name">{{ city.name }}</option>
+          }
+        </select>
+      </div>
+      <!-- Seçilen ile bağlı ilçeler -->
+      <div class="filter-field">
+        <label for="formDistrict">İlçe</label>
+        <select
+          id="formDistrict"
+          formControlName="district"
+          (change)="loadNeighborhoods()"
+          [attr.disabled]="
+            !districts.length || districtsLoading ? '' : null
+          "
+        >
+          <option value="" disabled>
+            {{ districtsLoading ? 'İlçeler yükleniyor...' : 'İlçe seçin' }}
+          </option>
+          @for (district of districts; track district.id) {
+            <option [value]="district.name">{{ district.name }}</option>
+          }
+        </select>
+      </div>
+      <!-- Seçilen ilçeye bağlı mahalleler -->
+      <div class="filter-field">
+        <label for="formNeighborhood">Mahalle</label>
+        <select
+          id="formNeighborhood"
+          formControlName="neighborhood"
+          [attr.disabled]="
+            !neighborhoods.length || neighborhoodsLoading ? '' : null
+          "
+        >
+          <option value="" disabled>
+            {{ neighborhoodsLoading ? 'Mahalleler yükleniyor...' : 'Mahalle seçin' }}
+          </option>
+          @for (neighborhood of neighborhoods; track neighborhood.id) {
+            <option [value]="neighborhood.name">
+              {{ neighborhood.name }}
+            </option>
+          }
+        </select>
+      </div>
         <div class="filter-field">
           <label for="formLotNumber">Ada No</label>
           <input
@@ -104,10 +143,9 @@
             type="text"
             maxlength="50"
             required
-            [(ngModel)]="form.lotNumber"
+            formControlName="lotNumber"
           />
         </div>
-
         <div class="filter-field">
           <label for="formParcelNumber">
             Parsel No
@@ -118,10 +156,9 @@
             type="text"
             maxlength="50"
             required
-            [(ngModel)]="form.parcelNumber"
+            formControlName="parcelNumber"
           />
         </div>
-
         <div class="filter-field">
           <label for="formPropertyType">
             Taşınmaz Türü
@@ -130,22 +167,19 @@
             id="formPropertyType"
             name="formPropertyType"
             required
-            [(ngModel)]="form.propertyType"
+            formControlName="propertyType"
           >
             <option [ngValue]="PropertyType.Land">
               Arsa
             </option>
-
             <option [ngValue]="PropertyType.Building">
               Bina
             </option>
-
             <option [ngValue]="PropertyType.Residence">
               Konut
             </option>
           </select>
         </div>
-
         <div class="filter-field full-width">
           <label for="formAddress">Adres</label>
           <textarea
@@ -154,26 +188,22 @@
             rows="3"
             maxlength="500"
             required
-            [(ngModel)]="form.address"
+            formControlName="address"
           ></textarea>
         </div>
-
         <div class="filter-field full-width">
           <label for="coordinates">
             Koordinatlar
           </label>
-
           <div class="map-field">
             <app-property-map
               [coordinates]="mapCoordinates"
               (coordinatesChange)="
                 onMapCoordinatesChange($event)"
             />
-
             @if (mapCoordinates.length === 4) {
               <div class="coordinate-preview">
                 <strong>Seçilen Koordinatlar</strong>
-
                 @for (
                   coordinate of mapCoordinates;
                   track $index
@@ -187,18 +217,16 @@
               </div>
             }
           </div>
-
           <small>
             Haritada tam dört farklı nokta seçin.
             Dördüncü noktada poligon otomatik tamamlanır.
           </small>
         </div>
       </div>
-
       <div class="filter-actions">
         <button
           type="submit"
-          [disabled]="propertyForm.invalid || saving"
+          [disabled]="propertyForm.invalid || saving || citiesLoading || districtsLoading || neighborhoodsLoading"
         >
           {{
             saving
@@ -208,7 +236,6 @@
                 : 'Kaydet'
           }}
         </button>
-
         <button
           type="button"
           class="secondary-button"
@@ -220,9 +247,9 @@
       </div>
     </form>
   }@else {
-
   <form
     class="filter-panel"
+    [formGroup]="filterForm"
     (ngSubmit)="applyFilters()"
   >
     <div class="filter-grid">
@@ -232,66 +259,60 @@
           id="city"
           name="city"
           type="text"
-          [(ngModel)]="query.city"
+          formControlName="city"
           placeholder="İl"
         />
       </div>
-
       <div class="filter-field">
         <label for="district">İlçe</label>
         <input
           id="district"
           name="district"
           type="text"
-          [(ngModel)]="query.district"
+          formControlName="district"
           placeholder="İlçe"
         />
       </div>
-
       <div class="filter-field">
         <label for="neighborhood">Mahalle</label>
         <input
           id="neighborhood"
           name="neighborhood"
           type="text"
-          [(ngModel)]="query.neighborhood"
+          formControlName="neighborhood"
           placeholder="Mahalle"
         />
       </div>
-
       <div class="filter-field">
         <label for="parcelNumber">Parsel No</label>
         <input
           id="parcelNumber"
           name="parcelNumber"
           type="text"
-          [(ngModel)]="query.parcelNumber"
+          formControlName="parcelNumber"
           placeholder="Parsel no"
         />
       </div>
-
       <div class="filter-field">
         <label for="lotNumber">Ada No</label>
         <input
           id="lotNumber"
           name="lotNumber"
           type="text"
-          [(ngModel)]="query.lotNumber"
+          formControlName="lotNumber"
           placeholder="Ada no"
         />
       </div>
-
       <div class="filter-field">
         <label for="propertyType">
           Taşınmaz Türü
         </label>
-
         <select
           id="propertyType"
           name="propertyType"
-          [(ngModel)]="query.propertyType"
+          formControlName="propertyType"
         >
-          <option [ngValue]="undefined">Tümü</option>
+          <option [ngValue]="null">Tümü</option>
           <option [ngValue]="PropertyType.Land">
             Arsa
           </option>
@@ -303,11 +324,36 @@
           </option>
         </select>
       </div>
+      <!-- Adres metnine göre taşınmazları filtreler. -->
+      <div class="filter-field">
+        <label for="filterAddress">Adres</label>
+        <input id="filterAddress" type="text" formControlName="address"
+          maxlength="500" placeholder="Adres içinde ara" />
+      </div>
+      <!-- Seçilen kullanıcının ID'sini API'ye gönderir. -->
+      @if (isAdmin) {
+        <div class="filter-field">
+          <label for="filterUserId">Kullanıcı</label>
+          <select id="filterUserId" formControlName="userId"
+            [attr.disabled]="usersLoading || usersError ? '' : null">
+            <option value="">
+              {{ usersLoading ? 'Kullanıcılar yükleniyor...' : 'Tüm kullanıcılar' }}
+            </option>
+            @for (user of filterUsers; track user.id) {
+              <option [value]="user.id">{{ user.name }} — {{ user.email }}</option>
+            }
+          </select>
+          @if (usersError) {
+            <small>{{ usersError }}</small>
+            <button type="button" class="secondary-button" (click)="loadFilterUsers()">
+              Tekrar dene
+            </button>
+          }
+        </div>
+      }
     </div>
-
     <div class="filter-actions">
       <button type="submit">Filtrele</button>
-
       <button
         type="button"
         class="secondary-button"
@@ -325,7 +371,6 @@
   >
     Excel İndir
   </button>
-
   <button
     type="button"
     (click)="exportPdf()"
@@ -333,14 +378,12 @@
   >
     PDF İndir
   </button>
-
   @if (isUser) {
     <input
       type="file"
       accept=".xlsx"
       (change)="selectExcelFile($event)"
     />
-
     <button
       type="button"
       (click)="importExcel()"
@@ -350,7 +393,6 @@
     </button>
   }
 </div>
-
   @if (loading) {
     <div class="status-message">
       Taşınmazlar yükleniyor...
@@ -371,13 +413,12 @@
             <th>Parsel</th>
             <th>Tür</th>
             <th>Adres</th>
-
+            <th>Fotoğraflar</th>
             @if (isUser) {
               <th>İşlemler</th>
             }
           </tr>
         </thead>
-
         <tbody>
           @for (property of properties; track property.id) {
             <tr>
@@ -386,7 +427,6 @@
               <td>{{ property.neighborhood }}</td>
               <td>{{ property.lotNumber }}</td>
               <td>{{ property.parcelNumber }}</td>
-
               <td>
                 {{
                   getPropertyTypeName(
@@ -394,9 +434,8 @@
                   )
                 }}
               </td>
-
               <td>{{ property.address }}</td>
-
+              <td><button type="button" (click)="photoPropertyId = property.id">Fotoğraflar</button></td>
               @if (isUser) {
                 <td>
                   <div class="row-actions">
@@ -407,7 +446,6 @@
                     >
                       Düzenle
                     </button>
-
                     <button
                       type="button"
                       class="delete-button"
@@ -423,7 +461,6 @@
         </tbody>
       </table>
     </div>
-
     <div class="pagination">
       <button
         type="button"
@@ -432,11 +469,9 @@
       >
         Önceki
       </button>
-
       <span>
         Sayfa {{ query.page }} / {{ totalPages }}
       </span>
-
       <button
         type="button"
         (click)="nextPage()"
@@ -446,5 +481,5 @@
       </button>
     </div>
   }
-} 
+}
 </section>

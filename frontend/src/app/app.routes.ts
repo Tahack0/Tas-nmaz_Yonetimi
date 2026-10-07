@@ -4,6 +4,12 @@ import { adminGuard } from './core/admin-guard';
 
 export const routes: Routes = [
   {
+     path: 'register',
+    loadComponent: () =>
+      import('./pages/register/register')
+        .then(component => component.Register),
+  },
+  {
     path: 'login',
     loadComponent: () =>
       import('./pages/login/login')
@@ -40,9 +46,26 @@ export const routes: Routes = [
         ),
   },
   {
+  path: 'property-map',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import(
+        './pages/property-map-overview/property-map-overview'
+      ).then(
+        (component) => component.PropertyMapOverview,
+      ),
+  },
+  {
     path: '',
     pathMatch: 'full',
     redirectTo: 'dashboard',
+  },
+  {
+    path: 'spatial-analysis',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/spatial-analysis/spatial-analysis')
+        .then(component => component.SpatialAnalysis),
   },
   {
     path: '**',

@@ -8,7 +8,7 @@ import {
 } from '@angular/forms';
 import {
   ActivatedRoute,
-  Router,
+  Router,RouterLink
 } from '@angular/router';
 import { finalize } from 'rxjs';
 import { Auth } from '../../core/auth';
@@ -17,7 +17,7 @@ import { Auth } from '../../core/auth';
   selector: 'app-login',
   imports: [
     CommonModule,
-    ReactiveFormsModule,
+    ReactiveFormsModule,RouterLink
   ],
   templateUrl: './login.html',
   styleUrl: './login.scss',

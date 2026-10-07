@@ -1,12 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using TasinmazYönetimi.Domain.Entities;
+using MediaEntity = TasinmazYönetimi.Domain.Entities.PropertyMedia;
 
 namespace TasinmazYönetimi.Infrastructure.Persistence.Configurations;
 
-public class PropertyMediaConfiguration : IEntityTypeConfiguration<PropertyMedia>
+public class PropertyMediaConfiguration : IEntityTypeConfiguration<MediaEntity>
 {
-    public void Configure(EntityTypeBuilder<PropertyMedia> builder)
+    public void Configure(EntityTypeBuilder<MediaEntity> builder)
     {
         builder.ToTable("property_media");
         builder.HasKey(media => media.Id);
