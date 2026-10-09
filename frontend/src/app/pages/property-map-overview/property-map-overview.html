@@ -1,42 +1,19 @@
 <div class="map-page">
-  <!-- Sayfa başlığı ve geri dönüş bağlantısı -->
-   @if (!embedded) {
+  @if (!embedded) {
     <header class="page-header">
-      <div>
-        <h1>Taşınmaz Haritası</h1>
-        <p>
-          Kayıtlı taşınmazları harita üzerinde
-          görüntüleyebilirsiniz.
-        </p>
-      </div>
-
-      <a
-        class="back-button"
-        routerLink="/dashboard"
-      >
-        Kontrol Paneline Dön
-      </a>
+      <div><h1>Taşınmaz Haritası</h1><p>Taşınmazları seçin ve ortak alanlarını inceleyin.</p></div>
+      <a class="back-button" routerLink="/dashboard">Kontrol Paneline Dön</a>
     </header>
   }
+  @if (errorMessage) { <div class="message error-message" role="alert">{{ errorMessage }}</div> }
 
-  
-
-  <!-- Servis veya geometri hatalarını gösterir -->
-  @if (errorMessage) {
-    <div class="message error-message">
-      {{ errorMessage }}
-    </div>
-  }
-
-  <section class="map-container">
-    <!-- OpenLayers haritasının oluşturulacağı alan -->
-    <div
-      #mapElement
-      class="map"
-    ></div>
-
-    <!-- Taşınmaz vektör katmanının kontrollerini gösterir -->
-    <div class="layer-controls">
+  <!-- Kontroller haritanın yanında durur; detay ve ölçekle çakışmaz. -->
+  <div class="map-layout">
+    <aside class="layer-controls" aria-label="Harita katmanları">
+      <h2>Katmanlar</h2>
+      <label>Altlık görünürlüğü: {{ baseOpacity }}%
+        <input type="range" min="0" max="100" step="5" [value]="baseOpacity" (input)="changeBaseOpacity($event)" />
+      </label>
       <label class="visibility-control">
         <input type="checkbox" [checked]="provinceVisible" [disabled]="provinceLoading || !!provinceError" (change)="toggleProvinceLayer($event)" />
         <span class="swatch province-swatch"></span> İl sınırları
@@ -48,102 +25,71 @@
       @if (provinceError) { <small role="alert">{{ provinceError }}</small> }
       @if (!provinceLoading && !provinceError) { <small>{{ provinceCount }} il sınırı yüklendi.</small> }
       <label class="visibility-control">
-        <input
-          type="checkbox"
-          [checked]="layerVisible"
-          (change)="togglePropertyLayer($event)"
-        />
-
-        Taşınmaz katmanı
+        <input type="checkbox" [checked]="layerVisible" (change)="togglePropertyLayer($event)" />
+        <span class="swatch property-swatch"></span> Taşınmazlar
+      </label>
+      <label>Taşınmaz görünürlüğü: {{ layerOpacity }}%
+        <input type="range" min="0" max="100" step="5" [value]="layerOpacity" [disabled]="!layerVisible" (input)="changeLayerOpacity($event)" />
       </label>
 
-      <label for="layerOpacity">
-        Saydamlık: {{ layerOpacity }}%
+      <!-- Kesişim katmanı taşınmaz katmanından bağımsız açılıp kapanır. -->
+      <label class="visibility-control">
+        <input type="checkbox" [checked]="overlapVisible" [disabled]="loading" (change)="toggleOverlaps($event)" />
+        <span class="swatch overlap-swatch"></span> Kesişim alanları
       </label>
+      <label>Kesişim görünürlüğü: {{ overlapOpacity }}%
+        <input type="range" min="0" max="100" step="5" [value]="overlapOpacity" [disabled]="!overlapVisible" (input)="changeOverlapOpacity($event)" />
+      </label>
+      @if (calculating) { <small role="status">Kesişimler hesaplanıyor...</small> }
+      @if (overlapMessage) { <small role="status">{{ overlapMessage }}</small> }
+      @if (overlapVisible && !calculating && overlapCount > 0) {
+        <small>{{ overlapCount }} taşınmaz çiftinde ortak alan var.</small>
+      }
 
-      <input
-        id="layerOpacity"
-        type="range"
-        min="0"
-        max="100"
-        step="5"
-        [value]="layerOpacity"
-        [disabled]="!layerVisible"
-        (input)="changeLayerOpacity($event)"
-      />
-    </div>
-    <!-- Harita yüklenirken gösterilen bilgi alanı -->
-    @if (loading) {
-      <div class="loading-panel">
-        Taşınmazlar yükleniyor...
+      <!-- Arama listeyi daraltır; seçili taşınmazlar checkbox ile belirlenir. -->
+      <h2>Taşınmaz seçimi</h2>
+      <input type="search" placeholder="İl, ilçe, ada veya parsel ara" aria-label="Taşınmaz listesini ara" [value]="searchText" (input)="searchProperties($event)" />
+      <div class="selection-actions">
+        <button type="button" [disabled]="loading" (click)="selectAll(true)">Tümünü seç</button>
+        <button type="button" [disabled]="loading" (click)="selectAll(false)">Seçimi kaldır</button>
       </div>
-    }
-
-    <!-- Haritadaki taşınmaz sayısını gösterir -->
-    @if (!loading && !errorMessage) {
-      <div class="property-count">
-        {{ propertyCount }} taşınmaz gösteriliyor
+      <small>{{ propertyCount }} / {{ properties.length }} taşınmaz seçili</small>
+      <div class="property-list">
+        @for (property of filteredProperties; track property.id) {
+          <label class="property-option">
+            <input type="checkbox" [checked]="selectedIds.has(property.id)" (change)="toggleProperty(property.id, $event)" />
+            <span><strong>{{ property.city }} / {{ property.district }}</strong>
+              <small>{{ property.neighborhood }} — Ada: {{ property.lotNumber }} / Parsel: {{ property.parcelNumber }}</small>
+            </span>
+          </label>
+        } @empty {
+          <small>{{ loading ? 'Liste yükleniyor...' : 'Taşınmaz bulunamadı.' }}</small>
+        }
       </div>
-    }
+      <button class="back-button" type="button" [disabled]="!propertyCount" (click)="fitSelected()">Seçilenlere yakınlaş</button>
+    </aside>
 
-    <!-- Poligona tıklandığında taşınmaz detaylarını gösterir -->
-    @if (selectedProperty) {
-      <aside class="property-details">
-        <div class="details-header">
-          <h2>Taşınmaz Bilgileri</h2>
-
-          <button
-            type="button"
-            aria-label="Detayları kapat"
-            (click)="closeDetails()"
-          >
-            ×
-          </button>
-        </div>
-
-        <dl>
-          <div>
-            <dt>İl</dt>
-            <dd>{{ selectedProperty.city }}</dd>
+    <section class="map-container">
+      <div #mapElement class="map"></div>
+      @if (loading) { <div class="loading-panel" role="status">Taşınmazlar yükleniyor...</div> }
+      @if (!loading) { <div class="property-count">{{ layerVisible ? propertyCount : 0 }} taşınmaz gösteriliyor</div> }
+      @if (selectedProperty) {
+        <aside class="property-details">
+          <div class="details-header">
+            <h2>Taşınmaz Bilgileri</h2>
+            <button type="button" aria-label="Detayları kapat" (click)="closeDetails()">×</button>
           </div>
-
-          <div>
-            <dt>İlçe</dt>
-            <dd>{{ selectedProperty.district }}</dd>
-          </div>
-
-          <div>
-            <dt>Mahalle</dt>
-            <dd>{{ selectedProperty.neighborhood }}</dd>
-          </div>
-
-          <div>
-            <dt>Ada No</dt>
-            <dd>{{ selectedProperty.lotNumber }}</dd>
-          </div>
-
-          <div>
-            <dt>Parsel No</dt>
-            <dd>{{ selectedProperty.parcelNumber }}</dd>
-          </div>
-
-          <div>
-            <dt>Taşınmaz Türü</dt>
-            <dd>
-              {{
-                getPropertyTypeName(
-                  selectedProperty.propertyType
-                )
-              }}
-            </dd>
-          </div>
-
-          <div class="full-width">
-            <dt>Adres</dt>
-            <dd>{{ selectedProperty.address }}</dd>
-          </div>
-        </dl>
-      </aside>
-    }
-  </section>
+          <dl>
+            <div><dt>İl</dt><dd>{{ selectedProperty.city }}</dd></div>
+            <div><dt>İlçe</dt><dd>{{ selectedProperty.district }}</dd></div>
+            <div><dt>Mahalle</dt><dd>{{ selectedProperty.neighborhood }}</dd></div>
+            <div><dt>Ada No</dt><dd>{{ selectedProperty.lotNumber }}</dd></div>
+            <div><dt>Parsel No</dt><dd>{{ selectedProperty.parcelNumber }}</dd></div>
+            <div><dt>Taşınmaz Türü</dt><dd>{{ getPropertyTypeName(selectedProperty.propertyType) }}</dd></div>
+            <div class="full-width"><dt>Adres</dt><dd>{{ selectedProperty.address }}</dd></div>
+          </dl>
+        </aside>
+      }
+    </section>
+  </div>
 </div>
