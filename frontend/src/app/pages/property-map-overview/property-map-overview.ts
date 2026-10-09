@@ -8,6 +8,13 @@ import {
   ViewChild,
   inject,
 } from '@angular/core';
+import { DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { HttpClient } from '@angular/common/http';
+import { finalize, map } from 'rxjs';
+import GeoJSON from 'ol/format/GeoJSON';
+import Geometry from 'ol/geom/Geometry';
+import { isEmpty } from 'ol/extent';
 import { RouterLink } from '@angular/router';
 import Feature from 'ol/Feature';
 import WKT from 'ol/format/WKT';
@@ -21,6 +28,8 @@ import { Fill, Stroke, Style } from 'ol/style';
 import View from 'ol/View';
 import {PagedResponse,Property,PropertyResponse,PropertyType,} from '../../core/property';
 import ScaleLine from 'ol/control/ScaleLine';
+
+type MapFeature = Feature<Geometry>;
 
 @Component({
   imports: [RouterLink],
@@ -41,6 +50,25 @@ export class PropertyMapOverview
 
   // Backend taşınmaz servisidir.
   private readonly propertyService = inject(Property);
+  private readonly http = inject(HttpClient);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly geoJsonFormat = new GeoJSON();
+  private destroyed = false;
+  private readonly provinceSource = new VectorSource<MapFeature>();
+  private readonly provinceLayer = new VectorLayer({
+    source: this.provinceSource,
+    style: new Style({
+      fill: new Fill({ color: 'rgba(16, 185, 129, 0.08)' }),
+      stroke: new Stroke({ color: '#047857', width: 2 }),
+    }),
+  });
+  protected provinceVisible = true;
+  protected provinceOpacity = 100;
+  protected provinceLoading = true;
+  protected provinceError = '';
+  protected provinceCount = 0;
+
+
 
   // Zoneless Angular yapısında ekranı günceller.
   private readonly changeDetector = inject(ChangeDetectorRef);
@@ -88,10 +116,12 @@ export class PropertyMapOverview
 
   ngAfterViewInit(): void {
     this.createMap();
+    this.loadProvinceBoundaries();
     this.loadPropertyPage(1, []);
   }
 
   ngOnDestroy(): void {
+    this.destroyed = true;
     // Sayfadan çıkıldığında haritayı DOM alanından ayırır.
     this.map?.setTarget(undefined);
   }
@@ -104,6 +134,7 @@ export class PropertyMapOverview
         new TileLayer({
           source: new OSM(),
         }),
+        this.provinceLayer,
         this.propertyLayer,
       ],
       view: new View({
@@ -148,6 +179,50 @@ export class PropertyMapOverview
           : '';
       }
     });
+  }
+
+  private loadProvinceBoundaries(): void {
+    this.http.get<unknown>('data/turkiye-il-sinirlari.geojson').pipe(
+      map((data) => this.readProvinceFeatures(data)),
+      finalize(() => {
+        this.provinceLoading = false;
+        if (!this.destroyed) this.changeDetector.markForCheck();
+      }),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe({
+      next: (features) => {
+        this.provinceSource.addFeatures(features);
+        this.provinceCount = features.length;
+      },
+      error: () => { this.provinceError = 'İl sınırları yüklenemedi. Sayfayı yenileyerek tekrar deneyin.'; },
+    });
+  }
+
+  private readProvinceFeatures(data: unknown): MapFeature[] {
+    const features = this.geoJsonFormat.readFeatures(data, {
+      dataProjection: 'EPSG:4326', featureProjection: 'EPSG:3857',
+    });
+    if (!features.length || features.some((feature) => !this.isValidProvince(feature))) {
+      throw new Error('İl sınırı verisi geçerli poligonlar içermiyor.');
+    }
+    return features;
+  }
+
+  private isValidProvince(feature: MapFeature): boolean {
+    const geometry = feature.getGeometry();
+    if (!geometry || !['Polygon', 'MultiPolygon'].includes(geometry.getType())) return false;
+    const extent = geometry.getExtent();
+    return !isEmpty(extent) && extent.every(Number.isFinite);
+  }
+
+  protected toggleProvinceLayer(event: Event): void {
+    this.provinceVisible = (event.target as HTMLInputElement).checked;
+    this.provinceLayer.setVisible(this.provinceVisible);
+  }
+
+  protected changeProvinceOpacity(event: Event): void {
+    this.provinceOpacity = Number((event.target as HTMLInputElement).value);
+    this.provinceLayer.setOpacity(this.provinceOpacity / 100);
   }
 
   private loadPropertyPage(

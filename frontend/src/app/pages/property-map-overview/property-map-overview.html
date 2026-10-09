@@ -38,6 +38,16 @@
     <!-- Taşınmaz vektör katmanının kontrollerini gösterir -->
     <div class="layer-controls">
       <label class="visibility-control">
+        <input type="checkbox" [checked]="provinceVisible" [disabled]="provinceLoading || !!provinceError" (change)="toggleProvinceLayer($event)" />
+        <span class="swatch province-swatch"></span> İl sınırları
+      </label>
+      <label>İl sınırı görünürlüğü: {{ provinceOpacity }}%
+        <input type="range" min="0" max="100" step="5" [value]="provinceOpacity" [disabled]="!provinceVisible || provinceLoading || !!provinceError" (input)="changeProvinceOpacity($event)" />
+      </label>
+      @if (provinceLoading) { <small role="status">İl sınırları yükleniyor...</small> }
+      @if (provinceError) { <small role="alert">{{ provinceError }}</small> }
+      @if (!provinceLoading && !provinceError) { <small>{{ provinceCount }} il sınırı yüklendi.</small> }
+      <label class="visibility-control">
         <input
           type="checkbox"
           [checked]="layerVisible"
