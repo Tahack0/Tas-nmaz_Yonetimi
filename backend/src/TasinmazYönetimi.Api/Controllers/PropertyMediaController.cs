@@ -20,7 +20,7 @@ public sealed class PropertyMediaController : ControllerBase
     [Consumes("multipart/form-data")]
     [RequestSizeLimit(110 * 1024 * 1024)]
     [RequestFormLimits(MultipartBodyLengthLimit = 110 * 1024 * 1024)]
-    public async Task<IActionResult> Upload(Guid propertyId, [FromForm] IFormFile file,
+    public async Task<IActionResult> Upload(Guid propertyId, IFormFile file,
         CancellationToken cancellationToken)
     {
         if (!TryGetIdentity(out Guid userId, out _)) return Unauthorized();

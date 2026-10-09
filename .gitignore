@@ -480,3 +480,9 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Yerel editör ayarları
+.vscode/
+
+# Yüklenen fotoğraflar
+**/Storage/PropertyPhotos/
