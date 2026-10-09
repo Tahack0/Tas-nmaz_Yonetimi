@@ -79,7 +79,9 @@ export class Dashboard implements OnInit {
   }
 
   logout(): void {
-    this.auth.logout();
-    void this.router.navigate(['/login']);
-  }
+    this.auth.logout().subscribe({
+    next: () => { void this.router.navigate(['/login']); },
+    error: () => window.alert('Çıkış yapılamadı. Sunucu bağlantısını kontrol edip tekrar deneyin.'),
+   });
+ }
 }

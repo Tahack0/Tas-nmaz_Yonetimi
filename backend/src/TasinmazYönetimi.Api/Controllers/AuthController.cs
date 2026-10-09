@@ -14,15 +14,18 @@ public class AuthController : ControllerBase
     private readonly IRegistrationService _registration;
     private readonly ILoginService _login;
     private readonly JwtTokenService _tokens;
+    private readonly IAuthSessionService _sessions;
 
     public AuthController(
         IRegistrationService registration,
         ILoginService login,
-        JwtTokenService tokens)
+        JwtTokenService tokens,
+        IAuthSessionService sessions)
     {
         _registration = registration;
         _login = login;
         _tokens = tokens;
+        _sessions = sessions;
     }
 
     [HttpPost("register")]
@@ -51,6 +54,24 @@ public class AuthController : ControllerBase
 
         var (token, expiresAtUtc) = _tokens.CreateToken(user);
         return Ok(new { accessToken = token, expiresAtUtc });
+    }
+    
+    // Token'ı sunucuda iptal eder ve çıkış kaydı oluşturur.
+    [Authorize]
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout(CancellationToken cancellationToken)
+    {
+        if (!Guid.TryParse(User.FindFirstValue(JwtRegisteredClaimNames.Sub), out Guid userId)
+            || !long.TryParse(User.FindFirstValue(JwtRegisteredClaimNames.Exp), out long expiration))
+            return Unauthorized();
+
+        string header = Request.Headers.Authorization.ToString();
+        if (!header.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+            return Unauthorized();
+
+        await _sessions.RevokeAsync(userId, header[7..].Trim(),
+            DateTimeOffset.FromUnixTimeSeconds(expiration).UtcDateTime, cancellationToken);
+        return NoContent();
     }
 
     [Authorize]

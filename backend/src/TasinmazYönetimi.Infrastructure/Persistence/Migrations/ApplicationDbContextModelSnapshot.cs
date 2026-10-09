@@ -231,6 +231,26 @@ namespace TasinmazYönetimi.Infrastructure.Persistence.Migrations
                     b.ToTable("property_media", (string)null);
                 });
 
+            modelBuilder.Entity("TasinmazYönetimi.Domain.Entities.RevokedToken", b =>
+                {
+                    b.Property<string>("TokenHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ExpiresAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("TokenHash")
+                        .HasName("pk_revoked_tokens");
+
+                    b.HasIndex("ExpiresAtUtc");
+
+                    b.ToTable("revoked_tokens", (string)null);
+                });
+
             modelBuilder.Entity("TasinmazYönetimi.Domain.Entities.SpatialAnalysis", b =>
                 {
                     b.Property<Guid>("Id")

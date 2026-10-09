@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, tap } from 'rxjs';
+import { Observable,catchError, of,  tap, throwError } from 'rxjs';
 
 export interface LoginRequest {
   email: string;
@@ -60,10 +60,10 @@ export class Auth {
 
     const expirationDate = new Date(expiration);
 
-    if (expirationDate <= new Date()) {
-      this.logout();
+    if (!Number.isFinite(expirationDate.getTime()) || expirationDate <= new Date()) {
+      this.clearSession();
       return false;
-    }
+  }
 
     return true;
   }
@@ -129,8 +129,27 @@ export class Auth {
   }
 
 
-  logout(): void {
-    localStorage.removeItem(this.tokenKey);
-    localStorage.removeItem(this.expirationKey);
-  }
+  logout():  Observable<void> {
+      const token = this.getToken();
+      if (!token) {
+        this.clearSession();
+        return of(undefined);
+      }
+      return this.http.post<void>(`${this.apiUrl}/logout`, null, {
+        headers: { Authorization: `Bearer ${token}` },
+      }).pipe(
+        catchError(error => error.status === 401
+          ? of(undefined) : throwError(() => error)),
+        tap(() => {
+          // Başka bir girişle değişen token'ı yanlışlıkla silmez.
+          if (this.getToken() === token) this.clearSession();
+        }),
+      );
+    }
+
+    // Süresi dolan oturum HTTP isteği göndermeden temizlenir.
+    private clearSession(): void {
+      localStorage.removeItem(this.tokenKey);
+      localStorage.removeItem(this.expirationKey);
+    }
 }

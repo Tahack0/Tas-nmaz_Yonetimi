@@ -51,6 +51,7 @@ builder.Services.Configure<PropertyMediaOptions>(options =>
     options.RootDirectory = Path.GetFullPath(directory, builder.Environment.ContentRootPath);
 });
 builder.Services.AddScoped<IPropertyMediaService, PropertyMediaService>();
+builder.Services.AddScoped<IAuthSessionService, AuthSessionService>();
 
 string jwtKey = builder.Configuration["Jwt:Key"]
     ?? throw new InvalidOperationException("Jwt:Key Yapilandirilmamis.");
@@ -83,6 +84,24 @@ builder.Services
             ClockSkew = TimeSpan.Zero,
             NameClaimType = System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub,
             RoleClaimType = System.Security.Claims.ClaimTypes.Role
+        };
+        // İmzası ve süresi doğrulanan token'ın çıkışla iptal edilip edilmediğini kontrol eder.
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = async context =>
+            {
+                string header = context.Request.Headers.Authorization.ToString();
+                if (!header.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                {
+                    context.Fail("Bearer token bulunamadı.");
+                    return;
+                }
+                var sessions = context.HttpContext.RequestServices
+                    .GetRequiredService<IAuthSessionService>();
+                if (await sessions.IsRevokedAsync(header[7..].Trim(),
+                    context.HttpContext.RequestAborted))
+                    context.Fail("Bu oturum kapatıldı.");
+            }
         };
     });
 const string FrontendCorsPolicy = "Frontend";
