@@ -1,5 +1,5 @@
 import { Component, DestroyRef, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -22,10 +22,13 @@ export class Register {
 
   form: RegisterRequest = { name: '', email: '', password: '' };
   passwordAgain = '';
+  readonly passwordPattern = /^(?=.*\p{L})(?=.*\p{Nd})(?=.*[^\p{L}\p{Nd}\s])\S{8,12}$/u;
 
-  register(): void {
+  register(registerForm: NgForm): void {
     if (this.saving()) return;
     this.error.set('');
+    registerForm.control.markAllAsTouched();
+    if (registerForm.invalid) return;
 
     if (this.form.password !== this.passwordAgain) {
       this.error.set('Parolalar eşleşmiyor.');

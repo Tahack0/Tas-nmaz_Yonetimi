@@ -11,9 +11,9 @@ public class RegisterRequest
     public string Email { get; set; } = string.Empty;
 
     // Kayıt parolasına ortak parola kuralını uygular.
-    [Required]
+    [Required(ErrorMessage = "Parola zorunludur.")]
     [RegularExpression(
         @"^(?=.*\p{L})(?=.*\d)(?=.*[^\p{L}\d\s])\S{8,12}$",
-        ErrorMessage = "Parola 8–12 karakter olmalı; harf, rakam ve özel karakter içermeli.")]
+        ErrorMessage = "Parola 8–12 karakter olmalı; en az bir harf, bir rakam ve bir özel karakter içermeli; boşluk içermemeli.")]
     public string Password { get; set; } = string.Empty;
 }

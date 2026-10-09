@@ -10,34 +10,53 @@
       </div>
       <a class="login-link" routerLink="/login">Giriş Yap →</a>
     } @else {
-      <form #registerForm="ngForm" (ngSubmit)="register()">
+      <form #registerForm="ngForm" (ngSubmit)="register(registerForm)">
         <label for="name">Ad Soyad</label>
         <input id="name" name="name" autocomplete="name"
                required minlength="2" maxlength="100"
-               [(ngModel)]="form.name" />
+               [(ngModel)]="form.name" #nameControl="ngModel" />
+        @if (nameControl.touched && nameControl.invalid) {
+          <small class="error" role="alert">Ad soyad zorunludur ve 2–100 karakter olmalıdır.</small>
+        }
 
         <label for="email">E-posta</label>
         <input id="email" name="email" type="email" autocomplete="email"
                required email maxlength="255"
-               [(ngModel)]="form.email" />
+               [(ngModel)]="form.email" #emailControl="ngModel" />
+        @if (emailControl.touched && emailControl.invalid) {
+          <small class="error" role="alert">Geçerli bir e-posta adresi girin (en fazla 255 karakter).</small>
+        }
 
         <label for="password">Parola</label>
         <input id="password" name="password" type="password"
-               autocomplete="new-password" required minlength="12"
-               [(ngModel)]="form.password" />
-        <small>En az 12 karakter kullanın.</small>
+               autocomplete="new-password" required minlength="8"
+               [pattern]="passwordPattern"
+               [(ngModel)]="form.password" #passwordControl="ngModel" />
+        <small>Parola 8–12 karakter olmalı; en az bir harf, bir rakam ve bir özel karakter içermeli; boşluk içermemeli.</small>
+        @if (passwordControl.touched && passwordControl.invalid) {
+          <small class="error" role="alert">
+            {{ passwordControl.errors?.['required'] ? 'Parola zorunludur.' : 'Parola 8–12 karakter olmalı; en az bir harf, bir rakam ve bir özel karakter içermeli; boşluk içermemeli.' }}
+          </small>
+        }
 
         <label for="passwordAgain">Parola Tekrarı</label>
         <input id="passwordAgain" name="passwordAgain" type="password"
                autocomplete="new-password" required
-               [(ngModel)]="passwordAgain" />
+               [(ngModel)]="passwordAgain" #passwordAgainControl="ngModel" />
+        @if (passwordAgainControl.touched) {
+          @if (passwordAgainControl.errors?.['required']) {
+            <small class="error" role="alert">Parolayı tekrar girin.</small>
+          } @else if (form.password !== passwordAgain) {
+            <small class="error" role="alert">Parolalar eşleşmiyor.</small>
+          }
+        }
 
         @if (error()) {
           <div class="error" role="alert">{{ error() }}</div>
         }
 
         <button type="submit"
-                [disabled]="registerForm.invalid || saving()">
+                [disabled]="registerForm.invalid || form.password !== passwordAgain || saving()">
           {{ saving() ? 'Hesap oluşturuluyor...' : 'Hesap Oluştur' }}
         </button>
       </form>
