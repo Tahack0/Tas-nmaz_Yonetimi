@@ -128,10 +128,14 @@ export class SpatialAnalysisMap implements AfterViewInit, OnDestroy {
   }
 
   private readFeature(wkt: string): Feature {
-    return this.wkt.readFeature(wkt, {
+    const feature = this.wkt.readFeature(wkt, {
       dataProjection: 'EPSG:4326',
       featureProjection: 'EPSG:3857',
     });
+    if (!feature) {
+      throw new Error('WKT does not contain a geometry.');
+    }
+    return feature;
   }
 
   private createStyle(label: string, color: string): Style {

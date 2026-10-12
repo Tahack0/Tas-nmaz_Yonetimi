@@ -80,110 +80,110 @@ public class PropertyService : IPropertyService
     public async Task<PagedResponse<PropertyResponse>> ListAsync(
         Guid userId,
     UserRole userRole,
-    PropertyQuery request,
+    PropertyQuery query,
     CancellationToken cancellationToken)
     {
-        IQueryable<Property> query =
+        IQueryable<Property> propertiesQuery =
             _db.Properties.AsNoTracking();
 
         if (userRole == UserRole.Admin)
         {
-            if (request.UserId.HasValue)
+            if (query.UserId.HasValue)
             {
-                query = query.Where(property =>
-                    property.UserId == request.UserId.Value);
+                propertiesQuery = propertiesQuery.Where(property =>
+                    property.UserId == query.UserId.Value);
             }
         }
         else
         {
-            query = query.Where(property =>
+            propertiesQuery = propertiesQuery.Where(property =>
                 property.UserId == userId);
         }
 
-        if (!string.IsNullOrWhiteSpace(request.City))
+        if (!string.IsNullOrWhiteSpace(query.City))
         {
-            string city = request.City.Trim();
+            string city = query.City.Trim();
 
-            query = query.Where(property =>
+            propertiesQuery = propertiesQuery.Where(property =>
                 EF.Functions.ILike(
                     property.City,
                     $"%{city}%"));
         }
 
-        if (!string.IsNullOrWhiteSpace(request.District))
+        if (!string.IsNullOrWhiteSpace(query.District))
         {
-            string district = request.District.Trim();
+            string district = query.District.Trim();
 
-            query = query.Where(property =>
+            propertiesQuery = propertiesQuery.Where(property =>
                 EF.Functions.ILike(
                     property.District,
                     $"%{district}%"));
         }
 
-        if (!string.IsNullOrWhiteSpace(request.Neighborhood))
+        if (!string.IsNullOrWhiteSpace(query.Neighborhood))
         {
             string neighborhood =
-                request.Neighborhood.Trim();
+                query.Neighborhood.Trim();
 
-            query = query.Where(property =>
+            propertiesQuery = propertiesQuery.Where(property =>
                 EF.Functions.ILike(
                     property.Neighborhood,
                     $"%{neighborhood}%"));
         }
 
-        if (!string.IsNullOrWhiteSpace(request.ParcelNumber))
+        if (!string.IsNullOrWhiteSpace(query.ParcelNumber))
         {
             string parcelNumber =
-                request.ParcelNumber.Trim();
+                query.ParcelNumber.Trim();
 
-            query = query.Where(property =>
+            propertiesQuery = propertiesQuery.Where(property =>
                 EF.Functions.ILike(
                     property.ParcelNumber,
                     $"%{parcelNumber}%"));
         }
 
-        if (!string.IsNullOrWhiteSpace(request.LotNumber))
+        if (!string.IsNullOrWhiteSpace(query.LotNumber))
         {
             string lotNumber =
-                request.LotNumber.Trim();
+                query.LotNumber.Trim();
 
-            query = query.Where(property =>
+            propertiesQuery = propertiesQuery.Where(property =>
                 EF.Functions.ILike(
                     property.LotNumber,
                     $"%{lotNumber}%"));
         }
 
-        if (!string.IsNullOrWhiteSpace(request.Address))
+        if (!string.IsNullOrWhiteSpace(query.Address))
         {
-            string address = request.Address.Trim();
+            string address = query.Address.Trim();
 
-            query = query.Where(property =>
+            propertiesQuery = propertiesQuery.Where(property =>
                 EF.Functions.ILike(
                     property.Address,
                     $"%{address}%"));
         }
 
-        if (request.PropertyType.HasValue)
+        if (query.PropertyType.HasValue)
         {
-            query = query.Where(property =>
+            propertiesQuery = propertiesQuery.Where(property =>
                 property.PropertyType ==
-                request.PropertyType.Value);
+                query.PropertyType.Value);
         }
 
         int totalCount =
-            await query.CountAsync(cancellationToken);
+            await propertiesQuery.CountAsync(cancellationToken);
 
-        var properties = await query
+        var properties = await propertiesQuery
             .OrderByDescending(property =>
                 property.CreatedAt)
-            .Skip((request.Page - 1) * request.PageSize)
-            .Take(request.PageSize)
+            .Skip((query.Page - 1) * query.PageSize)
+            .Take(query.PageSize)
             .ToListAsync(cancellationToken);
 
         int totalPages = (int)Math.Ceiling(
-            totalCount / (double)request.PageSize);
+            totalCount / (double)query.PageSize);
 
-        return new PagedResponse<PropertyResponse>(properties.Select(ToResponse).ToList(), request.Page, request.PageSize, totalCount, totalPages);
+        return new PagedResponse<PropertyResponse>(properties.Select(ToResponse).ToList(), query.Page, query.PageSize, totalCount, totalPages);
     }
 
     public async Task<PropertyResponse?> GetByIdAsync(

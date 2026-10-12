@@ -18,8 +18,8 @@ public sealed class PropertyMediaController : ControllerBase
     [HttpPost]
     [Authorize(Roles = nameof(UserRole.User))]
     [Consumes("multipart/form-data")]
-    [RequestSizeLimit(110 * 1024 * 1024)]
-    [RequestFormLimits(MultipartBodyLengthLimit = 110 * 1024 * 1024)]
+    [RequestSizeLimit(PropertyMediaOptions.MaxRequestSize)]
+    [RequestFormLimits(MultipartBodyLengthLimit = PropertyMediaOptions.MaxFileSize)]
     public async Task<IActionResult> Upload(Guid propertyId, IFormFile file,
         CancellationToken cancellationToken)
     {

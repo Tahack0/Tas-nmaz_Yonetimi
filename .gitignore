@@ -486,3 +486,6 @@ $RECYCLE.BIN/
 
 # Yüklenen fotoğraflar
 **/Storage/PropertyPhotos/
+
+#sonarqube
+**/.sonarqube/

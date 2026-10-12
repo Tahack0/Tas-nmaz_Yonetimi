@@ -27,13 +27,13 @@ public sealed class PropertyExportService : IPropertyExportService
     public async Task<ExportFileResponse> ExportExcelAsync(
         Guid userId,
         UserRole userRole,
-        PropertyExportQuery request,
+        PropertyExportQuery query,
         CancellationToken cancellationToken)
     {
         List<Property> properties = await GetPropertiesAsync(
             userId,
             userRole,
-            request,
+            query,
             cancellationToken);
 
         using var workbook = new XLWorkbook();
@@ -127,13 +127,13 @@ public sealed class PropertyExportService : IPropertyExportService
     public async Task<ExportFileResponse> ExportPdfAsync(
         Guid userId,
         UserRole userRole,
-        PropertyExportQuery request,
+        PropertyExportQuery query,
         CancellationToken cancellationToken)
     {
         List<Property> properties = await GetPropertiesAsync(
             userId,
             userRole,
-            request,
+            query,
             cancellationToken);
 
         var document = new Document();
@@ -228,7 +228,7 @@ public sealed class PropertyExportService : IPropertyExportService
         renderer.RenderDocument();
 
         using var stream = new MemoryStream();
-        renderer.PdfDocument.Save(stream, false);
+        await renderer.PdfDocument.SaveAsync(stream, false);
 
         await AddSuccessfulAuditAsync(
             userId,
@@ -244,94 +244,94 @@ public sealed class PropertyExportService : IPropertyExportService
     private async Task<List<Property>> GetPropertiesAsync(
         Guid userId,
         UserRole userRole,
-        PropertyExportQuery request,
+        PropertyExportQuery query,
         CancellationToken cancellationToken)
     {
-        IQueryable<Property> query =
+        IQueryable<Property> propertiesQuery =
             _db.Properties.AsNoTracking();
 
         if (userRole == UserRole.Admin)
         {
-            if (request.UserId.HasValue)
+            if (query.UserId.HasValue)
             {
-                query = query.Where(property =>
-                    property.UserId == request.UserId.Value);
+                propertiesQuery = propertiesQuery.Where(property =>
+                    property.UserId == query.UserId.Value);
             }
         }
         else
         {
-            query = query.Where(property =>
+            propertiesQuery = propertiesQuery.Where(property =>
                 property.UserId == userId);
         }
 
-        if (!string.IsNullOrWhiteSpace(request.City))
+        if (!string.IsNullOrWhiteSpace(query.City))
         {
-            string value = request.City.Trim();
+            string value = query.City.Trim();
 
-            query = query.Where(property =>
+            propertiesQuery = propertiesQuery.Where(property =>
                 EF.Functions.ILike(
                     property.City,
                     $"%{value}%"));
         }
 
-        if (!string.IsNullOrWhiteSpace(request.District))
+        if (!string.IsNullOrWhiteSpace(query.District))
         {
-            string value = request.District.Trim();
+            string value = query.District.Trim();
 
-            query = query.Where(property =>
+            propertiesQuery = propertiesQuery.Where(property =>
                 EF.Functions.ILike(
                     property.District,
                     $"%{value}%"));
         }
 
-        if (!string.IsNullOrWhiteSpace(request.Neighborhood))
+        if (!string.IsNullOrWhiteSpace(query.Neighborhood))
         {
-            string value = request.Neighborhood.Trim();
+            string value = query.Neighborhood.Trim();
 
-            query = query.Where(property =>
+            propertiesQuery = propertiesQuery.Where(property =>
                 EF.Functions.ILike(
                     property.Neighborhood,
                     $"%{value}%"));
         }
 
-        if (!string.IsNullOrWhiteSpace(request.ParcelNumber))
+        if (!string.IsNullOrWhiteSpace(query.ParcelNumber))
         {
-            string value = request.ParcelNumber.Trim();
+            string value = query.ParcelNumber.Trim();
 
-            query = query.Where(property =>
+            propertiesQuery = propertiesQuery.Where(property =>
                 EF.Functions.ILike(
                     property.ParcelNumber,
                     $"%{value}%"));
         }
 
-        if (!string.IsNullOrWhiteSpace(request.LotNumber))
+        if (!string.IsNullOrWhiteSpace(query.LotNumber))
         {
-            string value = request.LotNumber.Trim();
+            string value = query.LotNumber.Trim();
 
-            query = query.Where(property =>
+            propertiesQuery = propertiesQuery.Where(property =>
                 EF.Functions.ILike(
                     property.LotNumber,
                     $"%{value}%"));
         }
 
-        if (!string.IsNullOrWhiteSpace(request.Address))
+        if (!string.IsNullOrWhiteSpace(query.Address))
         {
-            string value = request.Address.Trim();
+            string value = query.Address.Trim();
 
-            query = query.Where(property =>
+            propertiesQuery = propertiesQuery.Where(property =>
                 EF.Functions.ILike(
                     property.Address,
                     $"%{value}%"));
         }
 
-        if (request.PropertyType.HasValue)
+        if (query.PropertyType.HasValue)
         {
-            query = query.Where(property =>
+            propertiesQuery = propertiesQuery.Where(property =>
                 property.PropertyType ==
-                request.PropertyType.Value);
+                query.PropertyType.Value);
         }
 
-        return await query
+        return await propertiesQuery
             .OrderByDescending(property => property.CreatedAt)
             .ToListAsync(cancellationToken);
     }

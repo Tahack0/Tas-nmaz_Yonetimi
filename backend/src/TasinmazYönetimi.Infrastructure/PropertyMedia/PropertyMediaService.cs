@@ -58,22 +58,8 @@ public sealed class PropertyMediaService : IPropertyMediaService
         string path = Path.Combine(_directory, media.FilePath);
         try
         {
-            await using (var target = new FileStream(path, FileMode.CreateNew,
-                FileAccess.Write, FileShare.None, 81920, FileOptions.Asynchronous))
-            {
-                await target.WriteAsync(header.AsMemory(0, headerLength), cancellationToken);
-                byte[] buffer = new byte[81920];
-                long written = headerLength;
-                int read;
-                while ((read = await content.ReadAsync(buffer, cancellationToken)) > 0)
-                {
-                    written += read;
-                    if (written > PropertyMediaOptions.MaxFileSize)
-                        throw new ArgumentException("Fotoğraf 100 MB sınırını aşamaz.");
-                    await target.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
-                }
-                media.FileSize = written;
-            }
+            media.FileSize = await WriteFileAsync(
+                path, content, header.AsMemory(0, headerLength), cancellationToken);
             _db.PropertyMedia.Add(media);
             _audit.Add(userId, LogStatus.Successful, OperationType.PropertyUpdated,
                 $"Taşınmaza fotoğraf eklendi: {propertyId}");
@@ -86,6 +72,27 @@ public sealed class PropertyMediaService : IPropertyMediaService
             throw;
         }
         return new(media.Id, media.FileName, media.ContentType, media.FileSize, media.CreatedAt);
+    }
+
+    private static async Task<long> WriteFileAsync(string path, Stream content,
+        ReadOnlyMemory<byte> header, CancellationToken cancellationToken)
+    {
+        await using var target = new FileStream(path, FileMode.CreateNew,
+            FileAccess.Write, FileShare.None, 81920, FileOptions.Asynchronous);
+
+        await target.WriteAsync(header, cancellationToken);
+        byte[] buffer = new byte[81920];
+        long written = header.Length;
+        int read;
+        while ((read = await content.ReadAsync(buffer, cancellationToken)) > 0)
+        {
+            written += read;
+            if (written > PropertyMediaOptions.MaxFileSize)
+                throw new ArgumentException("Fotoğraf 100 MB sınırını aşamaz.");
+            await target.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
+        }
+
+        return written;
     }
 
     public async Task<List<PropertyMediaResponse>?> ListAsync(Guid userId, UserRole role,

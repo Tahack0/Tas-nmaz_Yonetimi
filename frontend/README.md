@@ -1,5 +1,39 @@
 # Frontend
 
+## Installation and SonarQube (Windows PowerShell)
+
+Run these commands from the `frontend` directory. Use `npm.cmd` to avoid
+PowerShell blocking `npm.ps1`; no execution policy change is needed.
+
+```powershell
+npm.cmd ci
+npm.cmd run build
+npm.cmd test -- --watch=false
+```
+
+SonarQube is configured for `http://localhost:9000` and project key
+`tasinmazFront` in `sonar-project.properties`. Start your SonarQube server,
+then provide a token for that project only in the current terminal:
+
+```powershell
+$env:SONAR_TOKEN = Read-Host 'SonarQube token' -MaskInput
+npm.cmd run sonar
+Remove-Item Env:SONAR_TOKEN
+```
+
+`-MaskInput` requires PowerShell 7. In Windows PowerShell 5.1, use:
+
+```powershell
+$sonarCredential = Get-Credential -UserName 'sonar' -Message 'Enter the SonarQube token as the password'
+$env:SONAR_TOKEN = $sonarCredential.GetNetworkCredential().Password
+npm.cmd run sonar
+Remove-Item Env:SONAR_TOKEN
+Remove-Variable sonarCredential
+```
+
+Do not put the token in tracked files. The scan separates `*.spec.ts` tests
+from application sources. Coverage is not configured yet.
+
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.1.7.
 
 ## Development server

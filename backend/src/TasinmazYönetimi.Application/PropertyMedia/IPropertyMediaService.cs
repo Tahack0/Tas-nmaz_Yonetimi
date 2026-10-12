@@ -12,6 +12,8 @@ public sealed class PropertyMediaOptions
 {
     public string RootDirectory { get; set; } = string.Empty;
     public const long MaxFileSize = 100 * 1024 * 1024;
+    // Multipart başlıkları ve sınır ayraçları için dosya boyutuna 64 KB ek pay.
+    public const long MaxRequestSize = MaxFileSize + 64 * 1024;
 }
 
 public interface IPropertyMediaService

@@ -181,4 +181,4 @@ if (app.Environment.IsDevelopment())
 
     await LocationDataSeeder.SeedAsync(db, filePath);
 }
-app.Run();
+await app.RunAsync();

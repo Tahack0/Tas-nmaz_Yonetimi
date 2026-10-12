@@ -216,7 +216,7 @@ public sealed class AuditLogExportService
         renderer.RenderDocument();
 
         using var stream = new MemoryStream();
-        renderer.PdfDocument.Save(stream, false);
+        await renderer.PdfDocument.SaveAsync(stream, false);
 
         return new ExportFileResponse(
             stream.ToArray(),

@@ -34,6 +34,9 @@ yarn-error.log
 .sass-cache/
 /connect.lock
 /coverage
+/.scannerwork
+/package-lock.before-fix.json
+/package-lock.backup.json
 /libpeerconnection.log
 testem.log
 /typings
