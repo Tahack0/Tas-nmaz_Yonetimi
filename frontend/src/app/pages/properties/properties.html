@@ -379,7 +379,9 @@
     PDF İndir
   </button>
   @if (isUser) {
+    <label for="properties-excel-file">Excel dosyası seç</label>
     <input
+      id="properties-excel-file"
       type="file"
       accept=".xlsx"
       (change)="selectExcelFile($event)"

@@ -64,7 +64,7 @@
         </div>
 
         @if (loading()) {
-          <p class="empty" role="status">Kayıtlar yükleniyor...</p>
+          <output class="empty">Kayıtlar yükleniyor...</output>
         } @else if (error()) {
           <p class="empty">Kayıtlar görüntülenemiyor.</p>
         } @else {

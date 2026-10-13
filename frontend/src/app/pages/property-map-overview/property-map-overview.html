@@ -21,7 +21,7 @@
       <label>İl sınırı görünürlüğü: {{ provinceOpacity }}%
         <input type="range" min="0" max="100" step="5" [value]="provinceOpacity" [disabled]="!provinceVisible || provinceLoading || !!provinceError" (input)="changeProvinceOpacity($event)" />
       </label>
-      @if (provinceLoading) { <small role="status">İl sınırları yükleniyor...</small> }
+      @if (provinceLoading) { <output class="status-message">İl sınırları yükleniyor...</output> }
       @if (provinceError) { <small role="alert">{{ provinceError }}</small> }
       @if (!provinceLoading && !provinceError) { <small>{{ provinceCount }} il sınırı yüklendi.</small> }
       <label class="visibility-control">
@@ -40,8 +40,8 @@
       <label>Kesişim görünürlüğü: {{ overlapOpacity }}%
         <input type="range" min="0" max="100" step="5" [value]="overlapOpacity" [disabled]="!overlapVisible" (input)="changeOverlapOpacity($event)" />
       </label>
-      @if (calculating) { <small role="status">Kesişimler hesaplanıyor...</small> }
-      @if (overlapMessage) { <small role="status">{{ overlapMessage }}</small> }
+      @if (calculating) { <output class="status-message">Kesişimler hesaplanıyor...</output> }
+      @if (overlapMessage) { <output class="status-message">{{ overlapMessage }}</output> }
       @if (overlapVisible && !calculating && overlapCount > 0) {
         <small>{{ overlapCount }} taşınmaz çiftinde ortak alan var.</small>
       }
@@ -71,10 +71,10 @@
 
     <section class="map-container">
       <div #mapElement class="map"></div>
-      @if (loading) { <div class="loading-panel" role="status">Taşınmazlar yükleniyor...</div> }
+      @if (loading) { <output class="loading-panel">Taşınmazlar yükleniyor...</output> }
       @if (!loading) { <div class="property-count">{{ layerVisible ? propertyCount : 0 }} taşınmaz gösteriliyor</div> }
       @if (selectedProperty) {
-        <aside class="property-details">
+        <aside class="property-details" aria-label="Taşınmaz Bilgileri">
           <div class="details-header">
             <h2>Taşınmaz Bilgileri</h2>
             <button type="button" aria-label="Detayları kapat" (click)="closeDetails()">×</button>

@@ -26,7 +26,7 @@ import {
 })
 export class SpatialAnalysisMap implements AfterViewInit, OnDestroy {
   @ViewChild('mapElement')
-  private mapElement!: ElementRef<HTMLDivElement>;
+  private readonly mapElement!: ElementRef<HTMLDivElement>;
 
   @Output()
   readonly geometriesChange =

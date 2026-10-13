@@ -20,7 +20,7 @@ import {fromLonLat,toLonLat,} from 'ol/proj';
 export class PropertyMap
   implements AfterViewInit, OnChanges, OnDestroy {
   @ViewChild('mapContainer')
-  private mapContainer!: ElementRef<HTMLDivElement>;
+  private readonly mapContainer!: ElementRef<HTMLDivElement>;
 
   @Input()
   coordinates: number[][] = [];
@@ -87,7 +87,7 @@ export class PropertyMap
 
   ngOnDestroy(): void {
     this.removeDrawInteraction();
-    this.map?.setTarget(undefined);
+    this.map?.setTarget();
   }
 
   protected startDrawing(): void {

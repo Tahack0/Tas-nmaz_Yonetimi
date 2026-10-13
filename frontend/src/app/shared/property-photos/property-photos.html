@@ -4,7 +4,7 @@
     <button type="button" [disabled]="uploading()" (click)="closed.emit()">Kapat</button>
   </header>
   @if (error()) { <p role="alert" class="error">{{ error() }}</p> }
-  @if (success()) { <p role="status" class="success">{{ success() }}</p> }
+  @if (success()) { <output class="success">{{ success() }}</output> }
   <!-- Yükleme alanını yalnız User görür. -->
   @if (canUpload) {
     <div class="upload-row">
@@ -16,14 +16,14 @@
       </button>
     </div>
   }
-  @if (loading()) { <p role="status">Fotoğraflar yükleniyor...</p> }
+  @if (loading()) { <output>Fotoğraflar yükleniyor...</output> }
   @else if (!photos().length) { <p>Bu taşınmaza henüz fotoğraf eklenmemiş.</p> }
   <div class="photo-list">
     @for (photo of photos(); track photo.id) {
       <button type="button" (click)="showPhoto(photo)">{{ photo.fileName }}</button>
     }
   </div>
-  @if (imageLoading()) { <p role="status">Fotoğraf açılıyor...</p> }
+  @if (imageLoading()) { <output>Fotoğraf açılıyor...</output> }
   @if (imageUrl()) {
     <figure><img [src]="imageUrl()" [alt]="imageName()" /><figcaption>{{ imageName() }}</figcaption></figure>
   }

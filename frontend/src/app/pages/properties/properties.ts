@@ -37,7 +37,8 @@ export class Properties implements OnInit {
           this.loadFilterUsers(page + 1, users);
           return;
         }
-        this.filterUsers = users.sort((a, b) => a.name.localeCompare(b.name, 'tr'));
+        users.sort((a, b) => a.name.localeCompare(b.name, 'tr'));
+        this.filterUsers = users;
         this.usersLoading = false;
         this.changeDetector.markForCheck();
       },

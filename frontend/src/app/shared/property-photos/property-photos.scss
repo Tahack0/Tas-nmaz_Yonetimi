@@ -13,7 +13,8 @@ header, .upload-row {
 
 h2 { margin: 0; }
 
-p, figcaption { color: #64748b; }
+p, output, figcaption { color: #64748b; }
+output { display: block; margin: 1em 0; }
 
 button {
     padding: 10px 14px;

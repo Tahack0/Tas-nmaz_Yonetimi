@@ -5,9 +5,9 @@
     <p>Taşınmaz Yönetim Sistemi</p>
 
     @if (completed()) {
-      <div class="success" role="status">
+      <output class="success">
         Hesabınız oluşturuldu. Artık giriş yapabilirsiniz.
-      </div>
+      </output>
       <a class="login-link" routerLink="/login">Giriş Yap →</a>
     } @else {
       <form #registerForm="ngForm" (ngSubmit)="register(registerForm)">

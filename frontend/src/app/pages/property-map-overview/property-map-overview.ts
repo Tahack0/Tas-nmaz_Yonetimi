@@ -33,7 +33,7 @@ type PolygonFeature = GeoJsonFeature<Polygon | MultiPolygon>;
 })
 export class PropertyMapOverview implements AfterViewInit, OnDestroy {
   @Input() embedded = false;
-  @ViewChild('mapElement') private mapElement!: ElementRef<HTMLDivElement>;
+  @ViewChild('mapElement') private readonly mapElement!: ElementRef<HTMLDivElement>;
 
   private readonly propertyService = inject(Property);
   private readonly http = inject(HttpClient);
@@ -358,8 +358,13 @@ export class PropertyMapOverview implements AfterViewInit, OnDestroy {
       if (!active()) return;
       this.overlapSource.addFeatures(overlaps);
       this.overlapCount = overlaps.length;
-      this.overlapMessage = failures ? `${failures} çiftin kesişimi hesaplanamadı.` :
-        overlaps.length ? '' : 'Seçili taşınmazlarda ortak alan bulunamadı.';
+      if (failures > 0) {
+        this.overlapMessage = `${failures} çiftin kesişimi hesaplanamadı.`;
+      } else if (overlaps.length > 0) {
+        this.overlapMessage = '';
+      } else {
+        this.overlapMessage = 'Seçili taşınmazlarda ortak alan bulunamadı.';
+      }
     } catch (error) {
       console.error('Kesişim hesaplama hatası:', error);
       if (active()) this.overlapMessage = 'Kesişimler hesaplanamadı.';
