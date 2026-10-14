@@ -16,59 +16,66 @@ export const routes: Routes = [
         .then((component) => component.Login),
   },
   {
-    path: 'dashboard',
-    canActivate: [authGuard],
-    loadComponent: () =>
-      import('./pages/dashboard/dashboard')
-        .then((component) => component.Dashboard),
-  },
-  {
-    path: 'properties',
-    canActivate: [authGuard],
-    loadComponent: () =>
-      import('./pages/properties/properties')
-        .then((component) => component.Properties),
-  },
-  {
-  path: 'users',
-  canActivate: [authGuard, adminGuard],
-  loadComponent: () =>
-    import('./pages/users/users')
-      .then((component) => component.Users),
-  },
-  {
-    path: 'audit-logs',
-    canActivate: [authGuard, adminGuard],
-    loadComponent: () =>
-      import('./pages/audit-logs/audit-logs')
-        .then(
-          (component) => component.AuditLogs,
-        ),
-  },
-  {
-  path: 'property-map',
-    canActivate: [authGuard],
-    loadComponent: () =>
-      import(
-        './pages/property-map-overview/property-map-overview'
-      ).then(
-        (component) => component.PropertyMapOverview,
-      ),
-  },
-  {
     path: '',
-    pathMatch: 'full',
-    redirectTo: 'dashboard',
-  },
-  {
-    path: 'spatial-analysis',
-    canActivate: [authGuard],
     loadComponent: () =>
-      import('./pages/spatial-analysis/spatial-analysis')
-        .then(component => component.SpatialAnalysis),
-  },
-  {
-    path: '**',
-    redirectTo: 'dashboard',
+      import('./shared/user-layout/user-layout').then(component => component.UserLayout),
+    children: [
+      {
+        path: 'dashboard',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('./pages/dashboard/dashboard')
+            .then((component) => component.Dashboard),
+      },
+      {
+        path: 'properties',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('./pages/properties/properties')
+            .then((component) => component.Properties),
+      },
+      {
+      path: 'users',
+      canActivate: [authGuard, adminGuard],
+      loadComponent: () =>
+        import('./pages/users/users')
+          .then((component) => component.Users),
+      },
+      {
+        path: 'audit-logs',
+        canActivate: [authGuard, adminGuard],
+        loadComponent: () =>
+          import('./pages/audit-logs/audit-logs')
+            .then(
+              (component) => component.AuditLogs,
+            ),
+      },
+      {
+      path: 'property-map',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import(
+            './pages/property-map-overview/property-map-overview'
+          ).then(
+            (component) => component.PropertyMapOverview,
+          ),
+      },
+      {
+        path: '',
+        pathMatch: 'full',
+        redirectTo: 'dashboard',
+      },
+      {
+        path: 'spatial-analysis',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('./pages/spatial-analysis/spatial-analysis')
+            .then(component => component.SpatialAnalysis),
+      },
+      {
+        path: '**',
+        redirectTo: 'dashboard',
+      },
+    ],
   },
 ];

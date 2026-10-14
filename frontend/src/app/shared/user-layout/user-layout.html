@@ -1,0 +1,47 @@
+<div class="user-layout" [class.sidebar-collapsed]="sidebarCollapsed()">
+  <header class="topbar">
+    <div class="brand-area">
+    <button class="sidebar-toggle" type="button" (click)="toggleSidebar()"
+            [attr.aria-expanded]="!sidebarCollapsed()" aria-controls="sidebar-menu"
+            [attr.aria-label]="sidebarCollapsed() ? 'Menüyü genişlet' : 'Menüyü daralt'"
+            [attr.title]="sidebarCollapsed() ? 'Menüyü genişlet' : 'Menüyü daralt'">
+      <span aria-hidden="true">&#9776;</span>
+    </button>
+      <a class="brand" routerLink="/dashboard" aria-label="Taşınmaz Yönetimi ana sayfa">
+        <span class="brand-icon" aria-hidden="true">T</span>
+        <strong>Taşınmaz Yönetimi</strong>
+      </a>
+    </div>
+    <div class="page-heading">
+      <div class="breadcrumb"><a routerLink="/dashboard">Taşınmaz Yönetimi</a><span aria-hidden="true"> / </span><span>{{ pageTitle() }}</span></div>
+      <h1>{{ pageTitle() }}</h1>
+    </div>
+  </header>
+  <aside class="sidebar" aria-label="Kullanıcı menüsü">
+    <div class="sidebar-user" [attr.title]="email ?? 'Kullanıcı'">
+      <span class="avatar" aria-hidden="true">{{ avatarInitial }}</span>
+      <div class="sidebar-label">
+        <strong>{{ email ?? 'Kullanıcı' }}</strong>
+        <small>{{ isAdmin ? 'Yönetici' : 'Kullanıcı' }}</small>
+      </div>
+    </div>
+
+    <nav id="sidebar-menu" aria-label="Ana menü">
+      <a routerLink="/dashboard" routerLinkActive="active"
+         [routerLinkActiveOptions]="{ exact: true }" aria-label="Ana Sayfa" title="Ana Sayfa">
+        <span class="menu-icon" aria-hidden="true">&#8962;</span><span class="sidebar-label">Ana Sayfa</span></a>
+      <a routerLink="/spatial-analysis" routerLinkActive="active" aria-label="Alan Analizi" title="Alan Analizi">
+        <span class="menu-icon" aria-hidden="true">&#9672;</span><span class="sidebar-label">Alan Analizi</span></a>
+      @for (link of links; track link.path) {
+        <a [routerLink]="link.path" routerLinkActive="active" [attr.aria-label]="link.label" [attr.title]="link.label">
+          <span class="menu-icon" aria-hidden="true">{{ link.icon }}</span><span class="sidebar-label">{{ link.label }}</span></a>
+      }
+    </nav>
+
+    <button class="logout" type="button" (click)="logout()" aria-label="Çıkış Yap" title="Çıkış Yap">
+      <span class="menu-icon" aria-hidden="true">&#9211;</span><span class="sidebar-label">Çıkış Yap</span>
+    </button>
+  </aside>
+
+  <main #pageContent class="page-content" appScrollContentToTop><router-outlet /></main>
+</div>

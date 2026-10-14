@@ -17,67 +17,12 @@ a:focus-visible, button:focus-visible {
 
 .dashboard {
   display: grid;
-  grid-template-columns: 235px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   min-height: 100vh;
   background: #f4f7fb;
 }
 
-.sidebar {
-  position: sticky;
-  top: 0;
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  padding: 28px 18px;
-  background: #101c32;
-  color: #cbd5e1;
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 36px;
-  color: white;
-
-  > span {
-    display: grid;
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    background: var(--blue);
-    font-weight: 800;
-    place-items: center;
-  }
-}
-
 small { display: block; margin-top: 6px; color: var(--muted); line-height: 1.6; }
-.logo small { color: #94a3b8; }
-
-nav {
-  display: grid;
-  gap: 8px;
-
-  a {
-    padding: 13px;
-    border-radius: 9px;
-    font-size: 14px;
-
-    &:hover { background: #1e293b; }
-    &.active { background: var(--blue); color: white; }
-  }
-}
-
-.logout {
-  margin-top: auto;
-  padding: 12px;
-  border: 1px solid #475569;
-  border-radius: 9px;
-  background: transparent;
-  color: white;
-
-  &:hover { background: #1e293b; }
-}
 
 /* Başlık ve karşılama alanı */
 main { width: 100%; max-width: 1500px; margin: auto; padding: 32px; }
@@ -88,8 +33,8 @@ header, .welcome, .section-heading, .property-row, .shortcut {
   gap: 20px;
 }
 header { margin-bottom: 26px; }
-h1 { margin: 7px 0; font-size: 30px; letter-spacing: -0.04em; }
-h2 { margin: 0; font-size: 18px; }
+h1 { margin: 0 0 12px; }
+h2 { margin: 0 0 12px; }
 p { color: var(--muted); line-height: 1.7; }
 header p { margin: 0; }
 .eyebrow { color: var(--muted); font-size: 11px; letter-spacing: 0.12em; }
@@ -101,7 +46,7 @@ header p { margin: 0; }
   background: linear-gradient(115deg, #17305a, #245bcc);
   color: white;
 
-  h2 { font-size: 26px; }
+  h2 { }
   p { margin-bottom: 0; color: #dbeafe; }
 }
 
@@ -194,11 +139,9 @@ output.empty { display: block; }
 }
 
 @media (max-width: 760px) {
-  .dashboard { grid-template-columns: 1fr; }
-  .sidebar { position: static; height: auto; padding: 20px; }
-  .logo { margin-bottom: 20px; }
-  nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .logout { margin-top: 20px; }
+  .stats { grid-template-columns: 1fr; }
+  .welcome h2 { }
+  .primary-button { white-space: normal; }
   main { padding: 20px; }
   header { align-items: flex-start; flex-direction: column; }
   .account { text-align: left; }

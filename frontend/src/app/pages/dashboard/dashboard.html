@@ -1,28 +1,7 @@
 <div class="dashboard">
-  <!-- Menü bağlantıları role göre oluşturulur. -->
-  <aside class="sidebar">
-    <a class="logo" routerLink="/dashboard">
-      <span>TY</span>
-      <div><strong>Taşınmaz</strong><small>Yönetim Sistemi</small></div>
-    </a>
-
-    <nav aria-label="Ana menü">
-      <a routerLink="/dashboard" routerLinkActive="active"
-         [routerLinkActiveOptions]="{ exact: true }">Ana Sayfa</a>
-      <a routerLink="/spatial-analysis">Alan Analizi</a>
-      @for (link of links; track link.path) {
-        <a [routerLink]="link.path" routerLinkActive="active">{{ link.label }}</a>
-      }
-    </nav>
-
-    <button class="logout" type="button" (click)="logout()">Çıkış Yap</button>
-  </aside>
-
   <main>
     <header>
       <div>
-        <span class="eyebrow">GENEL BAKIŞ</span>
-        <h1>Kontrol Paneli</h1>
         <p>{{ isAdmin ? 'Tüm taşınmazların genel özeti.' : 'Kendi taşınmazlarınızın genel özeti.' }}</p>
       </div>
       <div class="account">

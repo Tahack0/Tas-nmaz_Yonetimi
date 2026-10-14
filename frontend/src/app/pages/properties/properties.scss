@@ -37,8 +37,8 @@
   margin-bottom: 24px;
 }
 
-h1 { margin: 0 0 8px; font-size: 30px; letter-spacing: -0.04em; }
-h2 { margin: 0; font-size: 20px; }
+h1 { margin: 0 0 12px; }
+h2 { margin: 0 0 12px; }
 p { margin: 0; color: var(--muted); line-height: 1.6; }
 
 .record-count {
@@ -242,4 +242,29 @@ table {
   .property-form,
   .file-actions { padding: 16px; }
   .file-actions input[type='file'] { min-width: 0; flex-basis: 100%; }
+}
+.filter-collapse {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  visibility: hidden;
+  transition: grid-template-rows 0.25s ease, opacity 0.25s ease, visibility 0s 0.25s;
+
+  &.open {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0s;
+  }
+}
+.filter-collapse-inner { min-height: 0; overflow: hidden; }
+.filter-panel .filter-actions { justify-content: flex-end; }
+.filter-toggle { display: inline-flex; align-items: center; gap: 10px; }
+.filter-chevron {
+  display: inline-block;
+  transition: transform 0.25s ease;
+  &.open { transform: rotate(180deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .filter-collapse, .filter-chevron { transition: none; }
 }

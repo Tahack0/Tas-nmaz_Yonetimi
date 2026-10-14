@@ -1,13 +1,21 @@
 <section class="audit-page">
   <header class="page-header">
     <div>
-      <h1>Audit Kayıtları</h1>
       <p>
         Sistemde gerçekleştirilen işlemleri inceleyin.
       </p>
     </div>
 
     <div class="export-actions">
+      <button
+        type="button"
+        class="filter-toggle"
+        (click)="filtersOpen = !filtersOpen"
+        [attr.aria-expanded]="filtersOpen"
+        aria-controls="audit-filter-panel"
+      >
+        Filtrele <span class="filter-chevron" [class.open]="filtersOpen" aria-hidden="true">&#9662;</span>
+      </button>
       <button
         type="button"
         (click)="exportExcel()"
@@ -32,186 +40,192 @@
     </div>
   }
 
-  <section class="filter-card">
-    <h2>Filtreler</h2>
+  <div class="filter-panel" id="audit-filter-panel"
+       [class.open]="filtersOpen" [attr.inert]="filtersOpen ? null : ''"
+       [attr.aria-hidden]="!filtersOpen">
+    <div class="filter-panel-inner">
+      <section class="filter-card" aria-labelledby="audit-filter-heading">
+        <h2 id="audit-filter-heading">Filtreler</h2>
 
-    <form
-      class="filter-grid"
-      (ngSubmit)="applyFilters()"
-    >
-      <label>
-        Kullanıcı ID
-
-        <input
-          type="text"
-          name="userId"
-          [(ngModel)]="query.userId"
-          placeholder="Kullanıcı GUID değeri"
-        />
-      </label>
-
-      <label>
-        Durum
-
-        <select
-          name="status"
-          [(ngModel)]="query.status"
+        <form
+          class="filter-grid"
+          (ngSubmit)="applyFilters()"
         >
-          <option [ngValue]="undefined">
-            Tümü
-          </option>
+          <label>
+            Kullanıcı ID
 
-          <option [ngValue]="LogStatus.Successful">
-            Başarılı
-          </option>
+            <input
+              type="text"
+              name="userId"
+              [(ngModel)]="query.userId"
+              placeholder="Kullanıcı GUID değeri"
+            />
+          </label>
 
-          <option [ngValue]="LogStatus.Failed">
-            Başarısız
-          </option>
-        </select>
-      </label>
+          <label>
+            Durum
 
-      <label>
-        İşlem Türü
+            <select
+              name="status"
+              [(ngModel)]="query.status"
+            >
+              <option [ngValue]="undefined">
+                Tümü
+              </option>
 
-        <select
-          name="operationType"
-          [(ngModel)]="query.operationType"
-        >
-          <option [ngValue]="undefined">
-            Tümü
-          </option>
+              <option [ngValue]="LogStatus.Successful">
+                Başarılı
+              </option>
 
-          <option [ngValue]="OperationType.Login">
-            Giriş
-          </option>
+              <option [ngValue]="LogStatus.Failed">
+                Başarısız
+              </option>
+            </select>
+          </label>
 
-          <option [ngValue]="OperationType.Logout">
-            Çıkış
-          </option>
+          <label>
+            İşlem Türü
 
-          <option
-            [ngValue]="OperationType.PropertyCreated"
-          >
-            Taşınmaz Eklendi
-          </option>
+            <select
+              name="operationType"
+              [(ngModel)]="query.operationType"
+            >
+              <option [ngValue]="undefined">
+                Tümü
+              </option>
 
-          <option
-            [ngValue]="OperationType.PropertyUpdated"
-          >
-            Taşınmaz Güncellendi
-          </option>
+              <option [ngValue]="OperationType.Login">
+                Giriş
+              </option>
 
-          <option
-            [ngValue]="OperationType.PropertyDeleted"
-          >
-            Taşınmaz Silindi
-          </option>
+              <option [ngValue]="OperationType.Logout">
+                Çıkış
+              </option>
 
-          <option
-            [ngValue]="OperationType.PropertyImported"
-          >
-            Taşınmaz İçe Aktarıldı
-          </option>
+              <option
+                [ngValue]="OperationType.PropertyCreated"
+              >
+                Taşınmaz Eklendi
+              </option>
 
-          <option
-            [ngValue]="OperationType.PropertyExported"
-          >
-            Taşınmaz Dışa Aktarıldı
-          </option>
+              <option
+                [ngValue]="OperationType.PropertyUpdated"
+              >
+                Taşınmaz Güncellendi
+              </option>
 
-          <option
-            [ngValue]="OperationType.UserCreated"
-          >
-            Kullanıcı Oluşturuldu
-          </option>
+              <option
+                [ngValue]="OperationType.PropertyDeleted"
+              >
+                Taşınmaz Silindi
+              </option>
 
-          <option
-            [ngValue]="OperationType.UserUpdated"
-          >
-            Kullanıcı Güncellendi
-          </option>
+              <option
+                [ngValue]="OperationType.PropertyImported"
+              >
+                Taşınmaz İçe Aktarıldı
+              </option>
 
-          <option
-            [ngValue]="OperationType.UserDeleted"
-          >
-            Kullanıcı Silindi
-          </option>
+              <option
+                [ngValue]="OperationType.PropertyExported"
+              >
+                Taşınmaz Dışa Aktarıldı
+              </option>
 
-          <option
-            [ngValue]="
-              OperationType.SpatialAnalysisPerformed
-            "
-          >
-            Mekânsal Analiz Yapıldı
-          </option>
-        </select>
-      </label>
+              <option
+                [ngValue]="OperationType.UserCreated"
+              >
+                Kullanıcı Oluşturuldu
+              </option>
 
-      <label>
-        IP Adresi
+              <option
+                [ngValue]="OperationType.UserUpdated"
+              >
+                Kullanıcı Güncellendi
+              </option>
 
-        <input
-          type="text"
-          name="ipAddress"
-          [(ngModel)]="query.ipAddress"
-          maxlength="45"
-          placeholder="Örnek: 127.0.0.1"
-        />
-      </label>
+              <option
+                [ngValue]="OperationType.UserDeleted"
+              >
+                Kullanıcı Silindi
+              </option>
 
-      <label>
-        Açıklama
+              <option
+                [ngValue]="
+                  OperationType.SpatialAnalysisPerformed
+                "
+              >
+                Mekânsal Analiz Yapıldı
+              </option>
+            </select>
+          </label>
 
-        <input
-          type="text"
-          name="description"
-          [(ngModel)]="query.description"
-          maxlength="1000"
-          placeholder="Açıklamada ara"
-        />
-      </label>
+          <label>
+            IP Adresi
 
-      <label>
-        Başlangıç Tarihi
+            <input
+              type="text"
+              name="ipAddress"
+              [(ngModel)]="query.ipAddress"
+              maxlength="45"
+              placeholder="Örnek: 127.0.0.1"
+            />
+          </label>
 
-        <input
-          type="datetime-local"
-          name="fromLocal"
-          [(ngModel)]="fromLocal"
-        />
-      </label>
+          <label>
+            Açıklama
 
-      <label>
-        Bitiş Tarihi
+            <input
+              type="text"
+              name="description"
+              [(ngModel)]="query.description"
+              maxlength="1000"
+              placeholder="Açıklamada ara"
+            />
+          </label>
 
-        <input
-          type="datetime-local"
-          name="toLocal"
-          [(ngModel)]="toLocal"
-        />
-      </label>
+          <label>
+            Başlangıç Tarihi
 
-      <div class="filter-actions">
-        <button
-          type="button"
-          class="secondary-button"
-          (click)="clearFilters()"
-          [disabled]="loading"
-        >
-          Temizle
-        </button>
+            <input
+              type="datetime-local"
+              name="fromLocal"
+              [(ngModel)]="fromLocal"
+            />
+          </label>
 
-        <button
-          type="submit"
-          class="primary-button"
-          [disabled]="loading"
-        >
-          Filtrele
-        </button>
-      </div>
-    </form>
-  </section>
+          <label>
+            Bitiş Tarihi
+
+            <input
+              type="datetime-local"
+              name="toLocal"
+              [(ngModel)]="toLocal"
+            />
+          </label>
+
+          <div class="filter-actions">
+            <button
+              type="button"
+              class="secondary-button"
+              (click)="clearFilters()"
+              [disabled]="loading"
+            >
+              Temizle
+            </button>
+
+            <button
+              type="submit"
+              class="primary-button"
+              [disabled]="loading"
+            >
+              Uygula
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
+  </div>
 
   <section class="table-card">
     <div class="table-heading">

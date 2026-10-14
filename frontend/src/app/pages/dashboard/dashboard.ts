@@ -1,21 +1,19 @@
-import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject , signal} from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { Auth } from '../../core/auth';
 import { Property, PropertyResponse, PropertyType } from '../../core/property';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink, RouterLinkActive, DatePipe],
+  imports: [RouterLink, DatePipe],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })
 export class Dashboard implements OnInit {
   private readonly auth = inject(Auth);
-  private readonly router = inject(Router);
   private readonly properties = inject(Property);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -34,11 +32,11 @@ export class Dashboard implements OnInit {
   ]);
   // Menü ve hızlı erişim aynı bağlantı listesini kullanır.
   readonly links = [
-    { label: 'Taşınmazlar', path: '/properties', description: 'Kayıtları inceleyin ve işlemlerinizi yönetin.' },
-    { label: 'Harita Görünümü', path: '/property-map', description: 'Taşınmazları harita üzerinde görüntüleyin.' },
+    { label: 'Taşınmazlar', path: '/properties', icon: '▦', description: 'Kayıtları inceleyin ve işlemlerinizi yönetin.' },
+    { label: 'Harita Görünümü', path: '/property-map', icon: '◎', description: 'Taşınmazları harita üzerinde görüntüleyin.' },
     ...(this.isAdmin ? [
-      { label: 'Kullanıcı Yönetimi', path: '/users', description: 'Kullanıcı hesaplarını ve rollerini yönetin.' },
-      { label: 'Audit Kayıtları', path: '/audit-logs', description: 'Sistemde yapılan işlemleri inceleyin.' },
+      { label: 'Kullanıcı Yönetimi', path: '/users', icon: '♙', description: 'Kullanıcı hesaplarını ve rollerini yönetin.' },
+      { label: 'Audit Kayıtları', path: '/audit-logs', icon: '≡', description: 'Sistemde yapılan işlemleri inceleyin.' },
     ] : []),
   ];
 
@@ -78,10 +76,4 @@ export class Dashboard implements OnInit {
     });
   }
 
-  logout(): void {
-    this.auth.logout().subscribe({
-    next: () => { void this.router.navigate(['/login']); },
-    error: () => window.alert('Çıkış yapılamadı. Sunucu bağlantısını kontrol edip tekrar deneyin.'),
-   });
- }
 }

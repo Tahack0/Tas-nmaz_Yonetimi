@@ -66,6 +66,7 @@ export class Properties implements OnInit {
   protected importing = false;
   protected exporting = false;
   protected showForm = false;
+  protected filtersOpen = false;
   protected editingId: string | null = null;
   // Kullanıcı filtresini yalnız Admin ekranında gösterir.
   protected readonly isAdmin = this.auth.getRole()?.toLowerCase() === 'admin';

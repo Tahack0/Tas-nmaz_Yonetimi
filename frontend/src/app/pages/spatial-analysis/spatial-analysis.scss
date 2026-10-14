@@ -20,9 +20,23 @@ header {
   margin-bottom: 24px;
 }
 
-h1 { margin: 0; }
+h1 { margin: 0 0 12px; }
 p { color: #64748b; }
 a { color: #2563eb; }
+.back-button {
+  display: inline-block;
+  padding: 11px 18px;
+  border: 0;
+  border-radius: 9px;
+  background: #172033;
+  color: white;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover { background: #2563eb; }
+}
 fieldset { margin: 0; padding: 0; border: 0; }
 .toolbar { margin-bottom: 12px; }
 

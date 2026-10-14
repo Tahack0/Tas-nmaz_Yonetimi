@@ -36,6 +36,7 @@ export class AuditLogs implements OnInit {
 
   protected loading = false;
   protected exporting = false;
+  protected filtersOpen = false;
   protected errorMessage = '';
 
   protected fromLocal = '';

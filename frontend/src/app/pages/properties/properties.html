@@ -1,7 +1,6 @@
 <section class="properties-page">
   <div class="page-header">
     <div>
-      <h1>Taşınmazlar</h1>
       <p>
         Kayıtlı taşınmazları görüntüleyin ve yönetin.
       </p>
@@ -25,6 +24,13 @@
       </button>
     </div>
   }
+      @if (!showForm && viewMode === 'list') {
+        <button type="button" class="secondary-button filter-toggle"
+          (click)="filtersOpen = !filtersOpen"
+          [attr.aria-expanded]="filtersOpen" aria-controls="property-filter-panel">
+          Filtrele <span class="filter-chevron" [class.open]="filtersOpen" aria-hidden="true">&#9662;</span>
+        </button>
+      }
       <span class="record-count">
         Toplam {{ totalCount }} kayıt
       </span>
@@ -247,122 +253,129 @@
       </div>
     </form>
   }@else {
-  <form
-    class="filter-panel"
-    [formGroup]="filterForm"
-    (ngSubmit)="applyFilters()"
-  >
-    <div class="filter-grid">
-      <div class="filter-field">
-        <label for="city">İl</label>
-        <input
-          id="city"
-          name="city"
-          type="text"
-          formControlName="city"
-          placeholder="İl"
-        />
-      </div>
-      <div class="filter-field">
-        <label for="district">İlçe</label>
-        <input
-          id="district"
-          name="district"
-          type="text"
-          formControlName="district"
-          placeholder="İlçe"
-        />
-      </div>
-      <div class="filter-field">
-        <label for="neighborhood">Mahalle</label>
-        <input
-          id="neighborhood"
-          name="neighborhood"
-          type="text"
-          formControlName="neighborhood"
-          placeholder="Mahalle"
-        />
-      </div>
-      <div class="filter-field">
-        <label for="parcelNumber">Parsel No</label>
-        <input
-          id="parcelNumber"
-          name="parcelNumber"
-          type="text"
-          formControlName="parcelNumber"
-          placeholder="Parsel no"
-        />
-      </div>
-      <div class="filter-field">
-        <label for="lotNumber">Ada No</label>
-        <input
-          id="lotNumber"
-          name="lotNumber"
-          type="text"
-          formControlName="lotNumber"
-          placeholder="Ada no"
-        />
-      </div>
-      <div class="filter-field">
-        <label for="propertyType">
-          Taşınmaz Türü
-        </label>
-        <select
-          id="propertyType"
-          name="propertyType"
-          formControlName="propertyType"
-        >
-          <option [ngValue]="null">Tümü</option>
-          <option [ngValue]="PropertyType.Land">
-            Arsa
-          </option>
-          <option [ngValue]="PropertyType.Building">
-            Bina
-          </option>
-          <option [ngValue]="PropertyType.Residence">
-            Konut
-          </option>
-        </select>
-      </div>
-      <!-- Adres metnine göre taşınmazları filtreler. -->
-      <div class="filter-field">
-        <label for="filterAddress">Adres</label>
-        <input id="filterAddress" type="text" formControlName="address"
-          maxlength="500" placeholder="Adres içinde ara" />
-      </div>
-      <!-- Seçilen kullanıcının ID'sini API'ye gönderir. -->
-      @if (isAdmin) {
-        <div class="filter-field">
-          <label for="filterUserId">Kullanıcı</label>
-          <select id="filterUserId" formControlName="userId"
-            [attr.disabled]="usersLoading || usersError ? '' : null">
-            <option value="">
-              {{ usersLoading ? 'Kullanıcılar yükleniyor...' : 'Tüm kullanıcılar' }}
-            </option>
-            @for (user of filterUsers; track user.id) {
-              <option [value]="user.id">{{ user.name }} — {{ user.email }}</option>
-            }
-          </select>
-          @if (usersError) {
-            <small>{{ usersError }}</small>
-            <button type="button" class="secondary-button" (click)="loadFilterUsers()">
-              Tekrar dene
-            </button>
+  <div class="filter-collapse" id="property-filter-panel"
+    [class.open]="filtersOpen" [attr.inert]="filtersOpen ? null : ''"
+    [attr.aria-hidden]="!filtersOpen">
+    <div class="filter-collapse-inner">
+      <form
+        class="filter-panel"
+        [formGroup]="filterForm"
+        (ngSubmit)="applyFilters()"
+      >
+        <div class="filter-grid">
+          <div class="filter-field">
+            <label for="city">İl</label>
+            <input
+              id="city"
+              name="city"
+              type="text"
+              formControlName="city"
+              placeholder="İl"
+            />
+          </div>
+          <div class="filter-field">
+            <label for="district">İlçe</label>
+            <input
+              id="district"
+              name="district"
+              type="text"
+              formControlName="district"
+              placeholder="İlçe"
+            />
+          </div>
+          <div class="filter-field">
+            <label for="neighborhood">Mahalle</label>
+            <input
+              id="neighborhood"
+              name="neighborhood"
+              type="text"
+              formControlName="neighborhood"
+              placeholder="Mahalle"
+            />
+          </div>
+          <div class="filter-field">
+            <label for="parcelNumber">Parsel No</label>
+            <input
+              id="parcelNumber"
+              name="parcelNumber"
+              type="text"
+              formControlName="parcelNumber"
+              placeholder="Parsel no"
+            />
+          </div>
+          <div class="filter-field">
+            <label for="lotNumber">Ada No</label>
+            <input
+              id="lotNumber"
+              name="lotNumber"
+              type="text"
+              formControlName="lotNumber"
+              placeholder="Ada no"
+            />
+          </div>
+          <div class="filter-field">
+            <label for="propertyType">
+              Taşınmaz Türü
+            </label>
+            <select
+              id="propertyType"
+              name="propertyType"
+              formControlName="propertyType"
+            >
+              <option [ngValue]="null">Tümü</option>
+              <option [ngValue]="PropertyType.Land">
+                Arsa
+              </option>
+              <option [ngValue]="PropertyType.Building">
+                Bina
+              </option>
+              <option [ngValue]="PropertyType.Residence">
+                Konut
+              </option>
+            </select>
+          </div>
+          <!-- Adres metnine göre taşınmazları filtreler. -->
+          <div class="filter-field">
+            <label for="filterAddress">Adres</label>
+            <input id="filterAddress" type="text" formControlName="address"
+              maxlength="500" placeholder="Adres içinde ara" />
+          </div>
+          <!-- Seçilen kullanıcının ID'sini API'ye gönderir. -->
+          @if (isAdmin) {
+            <div class="filter-field">
+              <label for="filterUserId">Kullanıcı</label>
+              <select id="filterUserId" formControlName="userId"
+                [attr.disabled]="usersLoading || usersError ? '' : null">
+                <option value="">
+                  {{ usersLoading ? 'Kullanıcılar yükleniyor...' : 'Tüm kullanıcılar' }}
+                </option>
+                @for (user of filterUsers; track user.id) {
+                  <option [value]="user.id">{{ user.name }} — {{ user.email }}</option>
+                }
+              </select>
+              @if (usersError) {
+                <small>{{ usersError }}</small>
+                <button type="button" class="secondary-button" (click)="loadFilterUsers()">
+                  Tekrar dene
+                </button>
+              }
+            </div>
           }
         </div>
-      }
+        <div class="filter-actions">
+          <button type="submit" [disabled]="loading">Uygula</button>
+          <button
+            type="button"
+            class="secondary-button"
+            (click)="clearFilters()"
+            [disabled]="loading"
+          >
+            Temizle
+          </button>
+        </div>
+      </form>
     </div>
-    <div class="filter-actions">
-      <button type="submit">Filtrele</button>
-      <button
-        type="button"
-        class="secondary-button"
-        (click)="clearFilters()"
-      >
-        Temizle
-      </button>
-    </div>
-  </form>
+  </div>
     <div class="file-actions">
   <button
     type="button"
