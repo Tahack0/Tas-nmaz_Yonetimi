@@ -134,8 +134,8 @@ export class Properties implements OnInit {
     const exact = items.find(item => item.name === value);
     if (exact || !value.trim()) return exact;
     const normalize = (name: string) => name.trim().toLocaleLowerCase('tr-TR')
-      .replace(/ı/g, 'i').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-      .replace(/\s+/g, ' ');
+      .replaceAll(/ı/g, 'i').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replaceAll(/\s+/g, ' ');
     const matches = items.filter(item => normalize(item.name) === normalize(value));
     return matches.length === 1 ? matches[0] : undefined;
   }
@@ -345,9 +345,9 @@ export class Properties implements OnInit {
   if (
     coordinates.length > 1 &&
     coordinates[0][0] ===
-      coordinates[coordinates.length - 1][0] &&
+      coordinates.at(-1)?.[0] &&
     coordinates[0][1] ===
-      coordinates[coordinates.length - 1][1]
+      coordinates.at(-1)?.[1]
   ) {
     coordinates = coordinates.slice(0, -1);
   }
@@ -519,9 +519,9 @@ export class Properties implements OnInit {
     if (
       coordinates.length > 1 &&
       coordinates[0][0] ===
-        coordinates[coordinates.length - 1][0] &&
+        coordinates.at(-1)?.[0] &&
       coordinates[0][1] ===
-        coordinates[coordinates.length - 1][1]
+        coordinates.at(-1)?.[1]
     ) {
       coordinates.pop();
     }

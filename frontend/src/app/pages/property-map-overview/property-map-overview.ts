@@ -24,6 +24,7 @@ import { Property, PropertyResponse, PropertyType } from '../../core/property';
 
 type MapFeature = Feature<Geometry>;
 type PolygonFeature = GeoJsonFeature<Polygon | MultiPolygon>;
+type OverlapCalculation = { overlaps: MapFeature[]; failures: number };
 
 @Component({
   imports: [RouterLink],
@@ -308,63 +309,12 @@ export class PropertyMapOverview implements AfterViewInit, OnDestroy {
     const active = () => !this.destroyed && version === this.calculationVersion;
     await new Promise<void>((resolve) => setTimeout(resolve, 0));
     if (!active()) return;
-    let failures = 0;
     try {
-      const features = this.vectorSource.getFeatures();
-      const indexes = new Map(features.map((feature, index) => [feature, index]));
-      const polygons = new Map<MapFeature, PolygonFeature>();
-      const readPolygon = (feature: MapFeature): PolygonFeature => {
-        let polygon = polygons.get(feature);
-        if (!polygon) {
-          polygon = this.geoJsonFormat.writeFeatureObject(feature, {
-            featureProjection: 'EPSG:3857', dataProjection: 'EPSG:4326',
-          }) as PolygonFeature;
-          polygons.set(feature, polygon);
-        }
-        return polygon;
-      };
-      const overlaps: MapFeature[] = [];
-      let lastYield = performance.now();
-      for (let i = 0; i < features.length; i++) {
-        if (!active()) return;
-        const geometry = features[i].getGeometry();
-        if (!geometry) continue;
-        // Mekânsal indeks sayesinde uzak taşınmaz çiftlerini karşılaştırmaz.
-        const candidates = this.vectorSource.getFeaturesInExtent(geometry.getExtent());
-        for (const second of candidates) {
-          const j = indexes.get(second);
-          if (j === undefined || j <= i) continue;
-          try {
-            const overlap = intersect(featureCollection([
-              readPolygon(features[i]), readPolygon(second),
-            ]));
-            if (overlap) {
-              const result = this.geoJsonFormat.readGeometry(overlap.geometry, {
-                dataProjection: 'EPSG:4326', featureProjection: 'EPSG:3857',
-              });
-              if (result) overlaps.push(new Feature({ geometry: result }));
-            }
-          } catch (error) {
-            failures++;
-            console.error('Kesişim hesaplanamadı:', error);
-          }
-          if (performance.now() - lastYield > 12) {
-            await new Promise<void>((resolve) => setTimeout(resolve, 0));
-            if (!active()) return;
-            lastYield = performance.now();
-          }
-        }
-      }
+      const { overlaps, failures } = await this.collectOverlaps(active);
       if (!active()) return;
       this.overlapSource.addFeatures(overlaps);
       this.overlapCount = overlaps.length;
-      if (failures > 0) {
-        this.overlapMessage = `${failures} çiftin kesişimi hesaplanamadı.`;
-      } else if (overlaps.length > 0) {
-        this.overlapMessage = '';
-      } else {
-        this.overlapMessage = 'Seçili taşınmazlarda ortak alan bulunamadı.';
-      }
+      this.overlapMessage = this.getOverlapMessage(failures, overlaps.length);
     } catch (error) {
       console.error('Kesişim hesaplama hatası:', error);
       if (active()) this.overlapMessage = 'Kesişimler hesaplanamadı.';
@@ -374,6 +324,74 @@ export class PropertyMapOverview implements AfterViewInit, OnDestroy {
         this.changeDetector.markForCheck();
       }
     }
+  }
+
+  private *overlapPairs(active: () => boolean): Generator<[MapFeature, MapFeature]> {
+    const features = this.vectorSource.getFeatures();
+    const indexes = new Map(features.map((feature, index) => [feature, index]));
+    for (const [i, first] of features.entries()) {
+      if (!active()) return;
+      const geometry = first.getGeometry();
+      if (!geometry) continue;
+      // Mekânsal indeks sayesinde uzak taşınmaz çiftlerini karşılaştırmaz.
+      for (const second of this.vectorSource.getFeaturesInExtent(geometry.getExtent())) {
+        const j = indexes.get(second);
+        if (j !== undefined && j > i) yield [first, second];
+      }
+    }
+  }
+
+  private async collectOverlaps(active: () => boolean): Promise<OverlapCalculation> {
+    const calculation: OverlapCalculation = { overlaps: [], failures: 0 };
+    const polygons = new Map<MapFeature, PolygonFeature>();
+    let lastYield = performance.now();
+    for (const [first, second] of this.overlapPairs(active)) {
+      this.appendOverlap(first, second, polygons, calculation);
+      if (performance.now() - lastYield > 12) {
+        await new Promise<void>((resolve) => setTimeout(resolve, 0));
+        if (!active()) return calculation;
+        lastYield = performance.now();
+      }
+    }
+    return calculation;
+  }
+
+  private readOverlapPolygon(
+    feature: MapFeature, polygons: Map<MapFeature, PolygonFeature>,
+  ): PolygonFeature {
+    let polygon = polygons.get(feature);
+    if (!polygon) {
+      polygon = this.geoJsonFormat.writeFeatureObject(feature, {
+        featureProjection: 'EPSG:3857', dataProjection: 'EPSG:4326',
+      }) as PolygonFeature;
+      polygons.set(feature, polygon);
+    }
+    return polygon;
+  }
+
+  private appendOverlap(
+    
+    first: MapFeature, second: MapFeature,
+    polygons: Map<MapFeature, PolygonFeature>, calculation: OverlapCalculation,
+  ): void {
+    try {
+      const overlap = intersect(featureCollection([
+        this.readOverlapPolygon(first, polygons), this.readOverlapPolygon(second, polygons),
+      ]));
+      if (!overlap) return;
+      const geometry = this.geoJsonFormat.readGeometry(overlap.geometry, {
+        dataProjection: 'EPSG:4326', featureProjection: 'EPSG:3857',
+      });
+      if (geometry) calculation.overlaps.push(new Feature({ geometry }));
+    } catch (error) {
+      calculation.failures++;
+      console.error('Kesişim hesaplanamadı:', error);
+    }
+  }
+
+  private getOverlapMessage(failures: number, overlapCount: number): string {
+    if (failures > 0) return `${failures} çiftin kesişimi hesaplanamadı.`;
+    return overlapCount > 0 ? '' : 'Seçili taşınmazlarda ortak alan bulunamadı.';
   }
 
   // Katmanların saydamlık değerleri birbirinden bağımsızdır.

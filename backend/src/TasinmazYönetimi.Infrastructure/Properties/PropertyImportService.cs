@@ -214,7 +214,7 @@ public sealed class PropertyImportService : IPropertyImportService
         return propertyType;
     }
 
-    private Polygon ParsePolygon(string value)
+    private static Polygon ParsePolygon(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
             throw new InvalidDataException();

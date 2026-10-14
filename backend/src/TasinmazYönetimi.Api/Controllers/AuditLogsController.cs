@@ -12,14 +12,11 @@ namespace TasinmazYönetimi.Api.Controllers;
 public class AuditLogsController : ControllerBase
 {
     private readonly IAuditLogService _auditLogs;
-    private readonly IAuditLogExportService _auditLogExports;
 
     public AuditLogsController(
-        IAuditLogService auditLogs,
-        IAuditLogExportService auditLogExports)
+        IAuditLogService auditLogs)
     {
         _auditLogs = auditLogs;
-        _auditLogExports = auditLogExports;
     }
 
     [HttpGet]
@@ -36,57 +33,6 @@ public class AuditLogsController : ControllerBase
                     cancellationToken);
 
             return Ok(result);
-        }
-        catch (ArgumentException exception)
-        {
-            return BadRequest(new
-            {
-                message = exception.Message
-            });
-        }
-    }
-    [HttpGet("export/excel")]
-    public async Task<IActionResult> ExportExcel(
-    [FromQuery] AuditLogExportQuery query,
-    CancellationToken cancellationToken)
-    {
-        try
-        {
-            ExportFileResponse result =
-                await _auditLogExports.ExportExcelAsync(
-                    query,
-                    cancellationToken);
-
-            return File(
-                result.Content,
-                result.ContentType,
-                result.FileName);
-        }
-        catch (ArgumentException exception)
-        {
-            return BadRequest(new
-            {
-                message = exception.Message
-            });
-        }
-    }
-
-    [HttpGet("export/pdf")]
-    public async Task<IActionResult> ExportPdf(
-        [FromQuery] AuditLogExportQuery query,
-        CancellationToken cancellationToken)
-    {
-        try
-        {
-            ExportFileResponse result =
-                await _auditLogExports.ExportPdfAsync(
-                    query,
-                    cancellationToken);
-
-            return File(
-                result.Content,
-                result.ContentType,
-                result.FileName);
         }
         catch (ArgumentException exception)
         {

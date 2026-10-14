@@ -13,6 +13,8 @@ namespace TasinmazYönetimi.Infrastructure.Properties;
 
 public sealed class PropertyExportService : IPropertyExportService
 {
+    private const string ExportDateTimeFormat = "dd.MM.yyyy HH:mm:ss";
+
     private readonly ApplicationDbContext _db;
     private readonly IAuditLogService _auditLogs;
 
@@ -93,10 +95,10 @@ public sealed class PropertyExportService : IPropertyExportService
         }
 
         worksheet.Column(11).Style.DateFormat.Format =
-            "dd.MM.yyyy HH:mm:ss";
+            ExportDateTimeFormat;
 
         worksheet.Column(12).Style.DateFormat.Format =
-            "dd.MM.yyyy HH:mm:ss";
+            ExportDateTimeFormat;
 
         worksheet.SheetView.FreezeRows(1);
         worksheet.RangeUsed()?.SetAutoFilter();
@@ -157,7 +159,7 @@ public sealed class PropertyExportService : IPropertyExportService
 
         Paragraph summary = section.AddParagraph(
             $"Kayit sayisi: {properties.Count} | " +
-            $"Rapor tarihi: {DateTime.UtcNow:dd.MM.yyyy HH:mm:ss} UTC");
+            $"Rapor tarihi: {DateTime.UtcNow.ToString(ExportDateTimeFormat)} UTC");
 
         summary.Format.Alignment = ParagraphAlignment.Center;
         summary.Format.SpaceAfter = Unit.FromCentimeter(0.5);
@@ -206,13 +208,13 @@ public sealed class PropertyExportService : IPropertyExportService
                 section,
                 "Olusturulma Tarihi",
                 property.CreatedAt.ToString(
-                    "dd.MM.yyyy HH:mm:ss"));
+                    ExportDateTimeFormat));
 
             AddField(
                 section,
                 "Guncellenme Tarihi",
                 property.UpdatedAt?.ToString(
-                    "dd.MM.yyyy HH:mm:ss") ?? "-");
+                    ExportDateTimeFormat) ?? "-");
 
             Paragraph separator = section.AddParagraph();
             separator.Format.Borders.Bottom.Width = 0.5;

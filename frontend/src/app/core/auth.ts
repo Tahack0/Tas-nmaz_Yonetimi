@@ -101,8 +101,8 @@ export class Auth {
 
     try {
         const encodedPayload = token.split('.')[1]
-        .replace(/-/g, '+')
-        .replace(/_/g, '/');
+        .replaceAll(/-/g, '+')
+        .replaceAll(/_/g, '/');
 
         const paddedPayload = encodedPayload.padEnd(
         Math.ceil(encodedPayload.length / 4) * 4,
@@ -111,7 +111,7 @@ export class Auth {
 
         const bytes = Uint8Array.from(
         atob(paddedPayload),
-        (character) => character.charCodeAt(0),
+        (character) => character.codePointAt(0) ?? 0,
         );
 
         return JSON.parse(
